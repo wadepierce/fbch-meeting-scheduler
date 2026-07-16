@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Mobile polish & invite emails
+
+- **Mobile header**: the organizer nav collapses into a hamburger menu on phones
+  (fixes overflow ≤360px and makes Sign out reachable). Desktop is unchanged.
+- **Send invite emails** over SMTP (any free provider — Brevo, Resend, SendGrid…).
+  Creating an invite emails it automatically when configured, with a **Resend email**
+  action; still falls back to copy-link / mailto when email isn't set up.
+
 ## 2026-07-16 — Passkeys, invites & theming
 
 - **Passkey (WebAuthn) sign-in** for organizers — passwordless via Face ID / fingerprint / PIN

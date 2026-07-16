@@ -30,12 +30,15 @@ The link works on your phone or computer.`;
 
 export default function InviteManager() {
   const [invites, setInvites] = useState<Invite[] | null>(null);
+  const [emailEnabled, setEmailEnabled] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +49,7 @@ export default function InviteManager() {
       }
       const data = await res.json();
       setInvites(data.invites ?? []);
+      setEmailEnabled(Boolean(data.emailEnabled));
     } catch {
       setInvites([]);
     }
@@ -60,6 +64,7 @@ export default function InviteManager() {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch("/api/app/invites", {
         method: "POST",
@@ -71,11 +76,23 @@ export default function InviteManager() {
         setError(data.error || "Could not create invite");
         return;
       }
+      const to = data.invite?.email ?? email;
+      if (data.emailEnabled) {
+        setNotice(
+          data.emailed
+            ? `Invite emailed to ${to}.`
+            : `Invite created, but the email failed${
+                data.emailError ? ` (${data.emailError})` : ""
+              }. Copy the link below to share it.`
+        );
+      } else {
+        setNotice(`Invite created for ${to}. Copy the link or email it below.`);
+      }
       setName("");
       setEmail("");
       setIsAdmin(false);
+      setCopiedId(null);
       await load();
-      if (data.invite?.id) setCopiedId(null);
     } finally {
       setBusy(false);
     }
@@ -88,6 +105,25 @@ export default function InviteManager() {
       setTimeout(() => setCopiedId((c) => (c === inv.id ? null : c)), 2000);
     } catch {
       /* clipboard may be blocked; the link is still visible below */
+    }
+  }
+
+  async function resend(inv: Invite) {
+    setResendingId(inv.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/app/invites/${inv.id}/email`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Could not send email");
+      } else {
+        setNotice(`Invite re-sent to ${inv.email}.`);
+      }
+    } finally {
+      setResendingId(null);
     }
   }
 
@@ -115,6 +151,9 @@ export default function InviteManager() {
         <p className="mt-1 text-xs text-ink-muted">
           They&apos;ll get a personal link. Opening it signs them in and prompts
           them to create a passkey.
+          {emailEnabled
+            ? " We'll email the invite for you."
+            : " Copy the link or email it from here."}
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -160,13 +199,24 @@ export default function InviteManager() {
             {error}
           </p>
         )}
+        {notice && (
+          <p className="mt-3 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
+            {notice}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={busy}
           className="mt-4 w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
         >
-          {busy ? "Creating…" : "Create invite link"}
+          {busy
+            ? emailEnabled
+              ? "Sending…"
+              : "Creating…"
+            : emailEnabled
+              ? "Create & email invite"
+              : "Create invite link"}
         </button>
       </form>
 
@@ -220,12 +270,23 @@ export default function InviteManager() {
                   >
                     {copiedId === inv.id ? "Copied!" : "Copy link"}
                   </button>
-                  <a
-                    href={mailtoFor(inv)}
-                    className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-card"
-                  >
-                    Email invite
-                  </a>
+                  {emailEnabled ? (
+                    <button
+                      type="button"
+                      disabled={resendingId === inv.id}
+                      onClick={() => void resend(inv)}
+                      className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-card disabled:opacity-50"
+                    >
+                      {resendingId === inv.id ? "Sending…" : "Resend email"}
+                    </button>
+                  ) : (
+                    <a
+                      href={mailtoFor(inv)}
+                      className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-card"
+                    >
+                      Email invite
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={() => void revoke(inv.id)}

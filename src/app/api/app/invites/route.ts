@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createInvite, listInvites } from "@/lib/invites";
 import { getBaseUrl } from "@/lib/base-url";
+import { isEmailConfigured, sendEmail, inviteEmailContent } from "@/lib/email";
 
 function inviteUrl(base: string, token: string): string {
   return `${base.replace(/\/$/, "")}/invite/${token}`;
@@ -20,6 +21,7 @@ export async function GET() {
   const base = await getBaseUrl();
   const invites = await listInvites();
   return NextResponse.json({
+    emailEnabled: isEmailConfigured(),
     invites: invites.map((i) => ({
       id: i.id,
       email: i.email,
@@ -33,7 +35,7 @@ export async function GET() {
   });
 }
 
-/** Create an invite link (admins only). */
+/** Create an invite link (admins only). Emails it too when SMTP is configured. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
@@ -50,6 +52,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Default to sending the email when we can; allow the caller to opt out.
+  const wantEmail = body.sendEmail !== false;
+
   try {
     const invite = await createInvite({
       email: String(body.email ?? ""),
@@ -58,15 +63,37 @@ export async function POST(req: NextRequest) {
       invitedById: session.id,
     });
     const base = await getBaseUrl();
+    const url = inviteUrl(base, invite.token);
+
+    let emailed = false;
+    let emailError: string | undefined;
+    if (wantEmail && isEmailConfigured()) {
+      const content = inviteEmailContent({
+        name: invite.name,
+        url,
+        invitedByName: session.name,
+      });
+      const res = await sendEmail({
+        to: invite.email,
+        replyTo: session.email,
+        ...content,
+      });
+      emailed = res.ok;
+      emailError = res.ok ? undefined : res.error;
+    }
+
     return NextResponse.json(
       {
+        emailEnabled: isEmailConfigured(),
+        emailed,
+        emailError,
         invite: {
           id: invite.id,
           email: invite.email,
           name: invite.name,
           isAdmin: invite.isAdmin,
           expiresAt: invite.expiresAt,
-          url: inviteUrl(base, invite.token),
+          url,
         },
       },
       { status: 201 }

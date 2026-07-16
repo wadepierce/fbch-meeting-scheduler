@@ -52,6 +52,27 @@ then add a passkey from the **Passkeys** page.
 | `BOOTSTRAP_ADMIN_NAME` | optional | Defaults to `Admin` |
 | `APP_URL` | recommended | Absolute origin used for invite links (e.g. `https://meetings.fbchenrietta.org`). Falls back to the request host. |
 | `RP_ID` | optional | WebAuthn Relying Party ID. Defaults to the request hostname; set it (e.g. `fbchenrietta.org`) only if passkeys must work across multiple subdomains. |
+| `SMTP_HOST` `SMTP_USER` `SMTP_PASS` | optional | Enables emailing invites. Set all three to turn it on. |
+| `SMTP_PORT` | optional | Defaults to `587` (`465` = implicit TLS). |
+| `SMTP_SECURE` | optional | `true` to force TLS (usually only for port 465). |
+| `EMAIL_FROM` | optional | From address, e.g. `FBCH Scheduler <meetings@fbchenrietta.org>`. Defaults to `SMTP_USER`. |
+
+## Sending invite emails (free)
+
+Emailing invites is **optional** — without it, organizers just copy the invite link
+(or use the "Email invite" button, which opens their own mail app). To have the app
+send the emails itself, point the `SMTP_*` vars at any free provider:
+
+- **[Brevo](https://www.brevo.com)** — recommended for the least setup. 300 emails/day
+  free, and you only verify **one sender address** (no DNS changes needed). Use
+  `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, and the SMTP login/key they give you.
+- **[Resend](https://resend.com)** — 3,000/month free; to email anyone you verify the
+  `fbchenrietta.org` domain (a few DNS records), which also gives you a polished
+  `meetings@fbchenrietta.org` from-address. SMTP host `smtp.resend.com`.
+- Any other SMTP provider (SendGrid, Mailgun, Gmail app password…) works too.
+
+Set `EMAIL_FROM` to a verified sender. When configured, creating an invite emails it
+automatically and the Team page shows a **Resend email** action.
 
 ## Railway
 
