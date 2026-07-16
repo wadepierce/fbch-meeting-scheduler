@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Self-service email notifications
+
+- **Per-organizer notification settings** on the new **Account** page (with
+  passkeys): each person toggles their own emails for *meeting poll responses*
+  and *headcount replies*. Defaults on; takes effect when SMTP is configured.
+- Notification emails fire on **new** responses only (not edits), after the
+  response is sent (`after()`), so participants never wait on SMTP. Each email
+  includes the running total and a "Manage notifications" link.
+
 ## Unreleased — Planning Center events & text-out headcounts
 
 - **Events page** (`/app/events`): pulls upcoming events from the Planning Center

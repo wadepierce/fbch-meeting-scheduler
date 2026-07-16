@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { cookies } from "next/headers";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "@/lib/db";
 import { filterValidSlots, generateSlotKeys } from "@/lib/meeting-poll";
+import { getBaseUrl } from "@/lib/base-url";
+import { notifyPollResponse } from "@/lib/notify";
 
 interface Ctx {
   params: Promise<{ slug: string }>;
@@ -76,6 +79,20 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
           slots,
         },
       });
+
+  // Notify the poll's creator about new responses (not edits), off the
+  // critical path so the participant never waits on SMTP.
+  if (!existing) {
+    const baseUrl = await getBaseUrl();
+    after(() =>
+      notifyPollResponse({
+        meetingId: meeting.id,
+        responderName: displayName,
+        slotCount: slots.length,
+        baseUrl,
+      })
+    );
+  }
 
   const res = NextResponse.json({
     response: {

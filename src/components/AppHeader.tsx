@@ -22,7 +22,7 @@ export default function AppHeader({
     { key: "meetings", href: "/app", label: "Meetings", show: true },
     { key: "events", href: "/app/events", label: "Events", show: true },
     { key: "team", href: "/app/team", label: "Team", show: session.isAdmin },
-    { key: "security", href: "/app/security", label: "Passkeys", show: true },
+    { key: "security", href: "/app/security", label: "Account", show: true },
   ].filter((l) => l.show) as typeof links;
 
   return (

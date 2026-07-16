@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { cookies } from "next/headers";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "@/lib/db";
+import { getBaseUrl } from "@/lib/base-url";
+import { notifyRsvpReply } from "@/lib/notify";
 
 interface Ctx {
   params: Promise<{ slug: string }>;
@@ -62,6 +65,11 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
     note: body.note ? String(body.note).trim().slice(0, 200) || null : null,
   };
 
+  const existing = await prisma.rsvpResponse.findUnique({
+    where: { rsvpId_guestToken: { rsvpId: rsvp.id, guestToken } },
+    select: { id: true },
+  });
+
   const response = await prisma.rsvpResponse.upsert({
     where: { rsvpId_guestToken: { rsvpId: rsvp.id, guestToken } },
     update: data,
@@ -72,6 +80,21 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
       ...data,
     },
   });
+
+  // Notify the headcount's creator about new replies (not edits), off the
+  // critical path so the guest never waits on SMTP.
+  if (!existing) {
+    const baseUrl = await getBaseUrl();
+    after(() =>
+      notifyRsvpReply({
+        rsvpId: rsvp.id,
+        responderName: displayName,
+        answer: data.answer,
+        count,
+        baseUrl,
+      })
+    );
+  }
 
   const res = NextResponse.json({
     response: {

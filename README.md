@@ -75,6 +75,11 @@ send the emails itself, point the `SMTP_*` vars at any free provider:
 Set `EMAIL_FROM` to a verified sender. When configured, creating an invite emails it
 automatically and the Team page shows a **Resend email** action.
 
+The same SMTP settings power **personal notifications**: each organizer gets an email
+when someone responds to their meeting polls or RSVPs to their headcounts, and can
+turn either off on the **Account** page (`/app/security`). Notifications only fire on
+new responses (not edits).
+
 ## Planning Center events & text-out headcounts
 
 The **Events** page pulls upcoming events from the Planning Center calendar so you can

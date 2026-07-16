@@ -16,6 +16,9 @@ model Organizer {
   passcodeHash String?
   active       Boolean      @default(true)
   isAdmin      Boolean      @default(false)
+  /// Self-service email notification preferences
+  notifyPollResponses Boolean @default(true)
+  notifyRsvpReplies   Boolean @default(true)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   polls        Meeting[]
