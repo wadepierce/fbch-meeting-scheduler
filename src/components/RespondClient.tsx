@@ -104,27 +104,27 @@ export default function RespondClient({
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-text">
           Find a time
         </p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{m.title}</h1>
+        <h1 className="mt-1 text-2xl font-bold text-ink">{m.title}</h1>
         {m.description && (
-          <p className="mt-2 text-sm text-slate-600">{m.description}</p>
+          <p className="mt-2 text-sm text-ink-muted">{m.description}</p>
         )}
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-ink-subtle">
           {formatDateRange(m.dates)} · {formatTime12(m.startTime)}–
           {formatTime12(m.endTime)} {tz}
           {" · "}
-          <span className="font-medium text-slate-700">
+          <span className="font-medium text-ink">
             {responseCount} responded
           </span>
         </p>
       </header>
 
       {m.chosenSlotKey && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-          <p className="text-sm font-semibold text-emerald-900">Meeting set</p>
-          <p className="mt-1 text-sm text-emerald-800">
+        <div className="mb-5 rounded-2xl border border-accent/40 bg-accent-soft p-4">
+          <p className="text-sm font-semibold text-ink">Meeting set</p>
+          <p className="mt-1 text-sm text-ink-muted">
             {m.meetingSubject || m.title}
             {" · "}
             {formatSlotLabel(m.chosenSlotKey)}
@@ -133,28 +133,30 @@ export default function RespondClient({
           </p>
           <a
             href={`/api/m/${m.slug}/ics`}
-            className="mt-3 inline-flex rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white"
+            className="mt-3 inline-flex rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong"
           >
             Add to calendar (.ics)
           </a>
-          <p className="mt-2 text-xs text-emerald-700">
+          <p className="mt-2 text-xs text-ink-subtle">
             On iPhone or Android, open the file and tap Add to Calendar.
           </p>
         </div>
       )}
 
       {closed && !m.chosenSlotKey && (
-        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="mb-4 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-text">
           This poll is closed. You can still view the group heatmap.
         </p>
       )}
 
-      <div className="mb-3 flex gap-1 rounded-xl bg-slate-100 p-1">
+      <div className="mb-3 flex gap-1 rounded-xl bg-card-muted p-1">
         <button
           type="button"
           onClick={() => setMode("mine")}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium ${
-            mode === "mine" ? "bg-white shadow-sm" : "text-slate-600"
+          className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+            mode === "mine"
+              ? "bg-card text-ink shadow-sm"
+              : "text-ink-muted hover:text-ink"
           }`}
         >
           My times
@@ -165,8 +167,10 @@ export default function RespondClient({
             setMode("heatmap");
             void refresh();
           }}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium ${
-            mode === "heatmap" ? "bg-white shadow-sm" : "text-slate-600"
+          className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+            mode === "heatmap"
+              ? "bg-card text-ink shadow-sm"
+              : "text-ink-muted hover:text-ink"
           }`}
         >
           Group heatmap
@@ -176,12 +180,10 @@ export default function RespondClient({
       <div className="grid gap-5 lg:grid-cols-[1fr_260px]">
         <div>
           {mode === "mine" && !closed && (
-            <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              <label className="text-sm font-medium text-slate-700">
-                Your name
-              </label>
+            <div className="mb-4 rounded-2xl border border-line bg-card p-4 shadow-sm">
+              <label className="text-sm font-medium text-ink">Your name</label>
               <input
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base"
+                className="mt-1 w-full rounded-xl border border-line bg-card-muted px-3 py-3 text-base text-ink placeholder:text-ink-subtle"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -212,16 +214,16 @@ export default function RespondClient({
                 type="button"
                 disabled={saving || !name.trim()}
                 onClick={() => void save()}
-                className="rounded-xl bg-sky-700 px-6 py-3.5 text-sm font-semibold text-white disabled:opacity-50"
+                className="rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
               >
                 {saving ? "Saving…" : dirty ? "Save my availability" : "Saved"}
               </button>
               {saved && !dirty && (
-                <span className="text-xs text-emerald-600">Saved</span>
+                <span className="text-xs text-accent">Saved</span>
               )}
             </div>
           )}
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-2 text-sm text-danger">{error}</p>}
         </div>
 
         <BestTimesPanel

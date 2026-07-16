@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import RespondClient from "@/components/RespondClient";
+import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   aggregateResponses,
   generateSlotKeys,
@@ -46,11 +48,10 @@ export default async function PublicMeetingPage({ params }: Props) {
     : null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-sky-50 to-slate-100 px-3 py-8 sm:px-4">
-      <div className="mb-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
-          First Baptist Church Henrietta
-        </p>
+    <main className="min-h-screen bg-canvas px-3 py-6 sm:px-4">
+      <div className="mx-auto mb-6 flex max-w-5xl items-center justify-between">
+        <Logo size="sm" />
+        <ThemeToggle />
       </div>
       <RespondClient
         initial={{

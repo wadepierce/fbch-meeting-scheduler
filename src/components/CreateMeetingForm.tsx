@@ -67,12 +67,12 @@ export default function CreateMeetingForm() {
   }
 
   const input =
-    "mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base";
+    "mt-1 w-full rounded-xl border border-line bg-card-muted px-3 py-3 text-base text-ink placeholder:text-ink-subtle";
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <label className="text-xs font-medium text-slate-500">
+      <div className="rounded-2xl border border-line bg-card p-5 shadow-sm">
+        <label className="text-xs font-medium text-ink-subtle">
           Meeting name
         </label>
         <input
@@ -81,7 +81,7 @@ export default function CreateMeetingForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <label className="mt-4 block text-xs font-medium text-slate-500">
+        <label className="mt-4 block text-xs font-medium text-ink-subtle">
           Notes (optional)
         </label>
         <textarea
@@ -93,19 +93,17 @@ export default function CreateMeetingForm() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-slate-800">
+        <h2 className="mb-2 text-sm font-semibold text-ink">
           Which days might work?
         </h2>
         <DateMultiSelect selected={dates} onChange={setDates} />
       </div>
 
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="text-sm font-semibold text-slate-800">
-          What times?
-        </h2>
+      <div className="rounded-2xl border border-line bg-card p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-ink">What times?</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-slate-500">No earlier than</label>
+            <label className="text-xs text-ink-subtle">No earlier than</label>
             <select
               className={input}
               value={startTime}
@@ -119,7 +117,7 @@ export default function CreateMeetingForm() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-slate-500">No later than</label>
+            <label className="text-xs text-ink-subtle">No later than</label>
             <select
               className={input}
               value={endTime}
@@ -139,17 +137,17 @@ export default function CreateMeetingForm() {
               key={n}
               type="button"
               onClick={() => setSlotMinutes(n)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                 slotMinutes === n
-                  ? "bg-sky-700 text-white"
-                  : "bg-slate-100 text-slate-700"
+                  ? "bg-brand text-brand-contrast"
+                  : "bg-card-muted text-ink-muted hover:bg-brand-soft hover:text-brand-text"
               }`}
             >
               {n} min slots
             </button>
           ))}
         </div>
-        <label className="mt-4 block text-xs text-slate-500">
+        <label className="mt-4 block text-xs text-ink-subtle">
           Looking for a meeting about…
         </label>
         <select
@@ -167,14 +165,14 @@ export default function CreateMeetingForm() {
         </select>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <div className="flex flex-col gap-2 pb-8">
         <button
           type="button"
           disabled={busy || !title.trim() || dates.length === 0}
           onClick={() => void submit(true)}
-          className="rounded-xl bg-sky-700 py-3.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-brand py-3.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
         >
           {busy ? "Creating…" : "Create & get share link"}
         </button>
@@ -182,7 +180,7 @@ export default function CreateMeetingForm() {
           type="button"
           disabled={busy || !title.trim() || dates.length === 0}
           onClick={() => void submit(false)}
-          className="rounded-xl border border-slate-300 py-3 text-sm font-medium text-slate-700 disabled:opacity-50"
+          className="rounded-xl border border-line py-3 text-sm font-medium text-ink transition hover:bg-card-muted disabled:opacity-50"
         >
           Save as draft
         </button>

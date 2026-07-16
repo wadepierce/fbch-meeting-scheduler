@@ -45,7 +45,7 @@ export default function DateMultiSelect({ selected, onChange }: Props) {
 
   return (
     <div
-      className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-gray-900"
+      className="rounded-xl border border-line bg-card p-4"
       onMouseLeave={() => setDragging(false)}
       onMouseUp={() => setDragging(false)}
     >
@@ -53,23 +53,21 @@ export default function DateMultiSelect({ selected, onChange }: Props) {
         <button
           type="button"
           onClick={() => shiftMonth(-1)}
-          className="rounded-lg px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          className="rounded-lg px-2 py-1 text-sm text-ink-muted transition hover:bg-card-muted"
         >
           ←
         </button>
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-          {monthLabel}
-        </span>
+        <span className="text-sm font-semibold text-ink">{monthLabel}</span>
         <button
           type="button"
           onClick={() => shiftMonth(1)}
-          className="rounded-lg px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          className="rounded-lg px-2 py-1 text-sm text-ink-muted transition hover:bg-card-muted"
         >
           →
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-gray-400">
+      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-ink-subtle">
         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
           <div key={i} className="py-1">
             {d}
@@ -101,10 +99,10 @@ export default function DateMultiSelect({ selected, onChange }: Props) {
               }}
               className={`h-9 rounded-lg text-sm font-medium transition-colors ${
                 isSelected
-                  ? "bg-emerald-500 text-white shadow-sm"
+                  ? "bg-accent text-accent-contrast shadow-sm"
                   : isToday
-                    ? "bg-orange-50 text-orange-700 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+                    ? "bg-brand-soft text-brand-text ring-1 ring-brand/30"
+                    : "text-ink hover:bg-card-muted"
               }`}
             >
               {day}
@@ -113,9 +111,9 @@ export default function DateMultiSelect({ selected, onChange }: Props) {
         })}
       </div>
 
-      <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mt-3 text-xs text-ink-subtle">
         Click or drag to select dates.{" "}
-        <span className="font-medium text-gray-700 dark:text-gray-300">
+        <span className="font-medium text-ink">
           {selected.length} selected
         </span>
       </p>

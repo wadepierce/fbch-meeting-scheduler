@@ -16,6 +16,8 @@
   "dependencies": {
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/client": "^6.19.2",
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.2",
     "@tailwindcss/postcss": "^4.3.3",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.7",

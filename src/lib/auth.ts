@@ -3,8 +3,11 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
-const COOKIE = "fbch_meeting_session";
-const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+export const SESSION_COOKIE = "fbch_meeting_session";
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+const COOKIE = SESSION_COOKIE;
+const MAX_AGE = SESSION_MAX_AGE;
 
 export type SessionUser = {
   id: string;
@@ -21,19 +24,20 @@ function secretKey() {
   return new TextEncoder().encode(s);
 }
 
-export async function hashPasscode(passcode: string): Promise<string> {
-  return bcrypt.hash(passcode, 10);
+/** Cookie attributes shared by every way we set the session cookie. */
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE,
+  };
 }
 
-export async function verifyPasscode(
-  passcode: string,
-  hash: string
-): Promise<boolean> {
-  return bcrypt.compare(passcode, hash);
-}
-
-export async function createSession(user: SessionUser): Promise<void> {
-  const token = await new SignJWT({
+/** Sign a session JWT for a user (does not set any cookie). */
+export async function createSessionToken(user: SessionUser): Promise<string> {
+  return new SignJWT({
     id: user.id,
     email: user.email,
     name: user.name,
@@ -43,15 +47,24 @@ export async function createSession(user: SessionUser): Promise<void> {
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
     .sign(secretKey());
+}
 
+export async function hashPasscode(passcode: string): Promise<string> {
+  return bcrypt.hash(passcode, 10);
+}
+
+export async function verifyPasscode(
+  passcode: string,
+  hash: string | null
+): Promise<boolean> {
+  if (!hash) return false;
+  return bcrypt.compare(passcode, hash);
+}
+
+export async function createSession(user: SessionUser): Promise<void> {
+  const token = await createSessionToken(user);
   const jar = await cookies();
-  jar.set(COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: MAX_AGE,
-  });
+  jar.set(COOKIE, token, sessionCookieOptions());
 }
 
 export async function destroySession(): Promise<void> {
@@ -80,6 +93,28 @@ export async function requireSession(): Promise<SessionUser> {
   const s = await getSession();
   if (!s) throw new Error("UNAUTHORIZED");
   return s;
+}
+
+/** Build a session payload from an Organizer row. */
+export function toSessionUser(org: {
+  id: string;
+  email: string;
+  name: string;
+  isAdmin: boolean;
+}): SessionUser {
+  return { id: org.id, email: org.email, name: org.name, isAdmin: org.isAdmin };
+}
+
+/** Sign a specific organizer in (used by passkey + invite flows). */
+export async function signInOrganizer(org: {
+  id: string;
+  email: string;
+  name: string;
+  isAdmin: boolean;
+}): Promise<SessionUser> {
+  const user = toSessionUser(org);
+  await createSession(user);
+  return user;
 }
 
 /** Login with email + passcode. Bootstrap admin from env if DB empty. */

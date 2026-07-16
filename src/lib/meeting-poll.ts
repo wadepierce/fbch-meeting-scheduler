@@ -301,9 +301,9 @@ export function slotLocalDateTime(
   const total = parseMinutes(time) + addMinutes;
   const dayOffset = Math.floor(total / (24 * 60));
   const minsInDay = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
-  let y = Number(date.slice(0, 4));
-  let m = Number(date.slice(5, 7));
-  let d = Number(date.slice(8, 10)) + dayOffset;
+  const y = Number(date.slice(0, 4));
+  const m = Number(date.slice(5, 7));
+  const d = Number(date.slice(8, 10)) + dayOffset;
   // Roll calendar days using UTC noon to avoid DST edge issues on the date part
   const rolled = new Date(Date.UTC(y, m - 1, d));
   const dateStr = `${rolled.getUTCFullYear()}-${String(rolled.getUTCMonth() + 1).padStart(2, "0")}-${String(rolled.getUTCDate()).padStart(2, "0")}`;

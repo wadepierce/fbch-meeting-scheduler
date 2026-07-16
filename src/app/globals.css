@@ -1,26 +1,144 @@
 @import "tailwindcss";
 
+/*
+ * FBCH Meeting Scheduler — semantic theme tokens.
+ * Brand navy is taken from the First Baptist Church Henrietta wordmark.
+ * Every surface/text pairing below is chosen for AA contrast in BOTH themes.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --canvas: #eef1f8;
+  --card: #ffffff;
+  --card-muted: #f6f8fc;
+  --line: #dde3ee;
+  --line-strong: #c4cddf;
+
+  --ink: #0f1a33;
+  --ink-muted: #46536e;
+  --ink-subtle: #6b768f;
+
+  /* Brand navy from the FBCH logo */
+  --brand: #26388e;
+  --brand-strong: #1d2c72;
+  --brand-contrast: #ffffff;
+  --brand-text: #26388e;
+  --brand-soft: #e7ebf9;
+
+  --accent: #0f7a5f;
+  --accent-strong: #0c6350;
+  --accent-contrast: #ffffff;
+  --accent-soft: #dcf3ea;
+
+  --danger: #c0392b;
+  --danger-soft: #fdeceb;
+
+  --ring: 38 56 142; /* brand rgb, used with /opacity */
+}
+
+/* Manual dark override (wins over system preference) */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #0a0f1f;
+  --card: #131c33;
+  --card-muted: #0f1730;
+  --line: #263352;
+  --line-strong: #38476b;
+
+  --ink: #e9edf8;
+  --ink-muted: #aab6d2;
+  --ink-subtle: #808eab;
+
+  --brand: #4a62d0;
+  --brand-strong: #5a71dc;
+  --brand-contrast: #ffffff;
+  --brand-text: #98a9f4;
+  --brand-soft: #1b2547;
+
+  --accent: #15b98c;
+  --accent-strong: #22c99b;
+  --accent-contrast: #06231b;
+  --accent-soft: #10362b;
+
+  --danger: #f2827a;
+  --danger-soft: #3a1e1c;
+
+  --ring: 152 169 244;
+}
+
+/* Follow the OS when the user hasn't explicitly chosen a theme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    color-scheme: dark;
+
+    --canvas: #0a0f1f;
+    --card: #131c33;
+    --card-muted: #0f1730;
+    --line: #263352;
+    --line-strong: #38476b;
+
+    --ink: #e9edf8;
+    --ink-muted: #aab6d2;
+    --ink-subtle: #808eab;
+
+    --brand: #4a62d0;
+    --brand-strong: #5a71dc;
+    --brand-contrast: #ffffff;
+    --brand-text: #98a9f4;
+    --brand-soft: #1b2547;
+
+    --accent: #15b98c;
+    --accent-strong: #22c99b;
+    --accent-contrast: #06231b;
+    --accent-soft: #10362b;
+
+    --danger: #f2827a;
+    --danger-soft: #3a1e1c;
+
+    --ring: 152 169 244;
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-card: var(--card);
+  --color-card-muted: var(--card-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-brand-text: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, Segoe UI,
+    Roboto, Arial, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Focus ring that reads on either theme */
+*:focus-visible {
+  outline: 2px solid rgb(var(--ring) / 0.9);
+  outline-offset: 2px;
 }

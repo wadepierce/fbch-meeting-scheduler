@@ -9,15 +9,56 @@ datasource db {
 
 /// Invited organizers (staff/committee) who can create polls
 model Organizer {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String       @id @default(cuid())
+  email        String       @unique
   name         String
-  passcodeHash String
-  active       Boolean   @default(true)
-  isAdmin      Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  /// Optional legacy passcode. Passkey users have none.
+  passcodeHash String?
+  active       Boolean      @default(true)
+  isAdmin      Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   polls        Meeting[]
+  credentials  Credential[]
+  invitesSent  Invite[]     @relation("InvitedBy")
+}
+
+/// A WebAuthn / passkey credential bound to an organizer.
+/// One organizer can have several (phone, laptop, security key…).
+model Credential {
+  id           String    @id @default(cuid())
+  organizerId  String
+  organizer    Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  /// base64url-encoded credential id from the authenticator
+  credentialId String    @unique
+  /// COSE public key bytes
+  publicKey    Bytes
+  counter      Int       @default(0)
+  transports   String[]  @default([])
+  deviceLabel  String?
+  backedUp     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime  @default(now())
+
+  @@index([organizerId])
+}
+
+/// A single-use-ish invite link. Clicking it signs the person in and
+/// (the first time) provisions their Organizer record.
+model Invite {
+  id          String     @id @default(cuid())
+  token       String     @unique
+  email       String
+  name        String
+  isAdmin     Boolean    @default(false)
+  invitedById String?
+  invitedBy   Organizer? @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  organizerId String?
+  acceptedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime   @default(now())
+
+  @@index([email])
 }
 
 model Meeting {

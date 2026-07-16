@@ -151,7 +151,7 @@ export default function MeetingDetailClient({
   }
 
   const input =
-    "mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm";
+    "mt-1 w-full rounded-xl border border-line bg-card-muted px-3 py-2.5 text-sm text-ink placeholder:text-ink-subtle";
 
   return (
     <div className="space-y-5">
@@ -161,7 +161,7 @@ export default function MeetingDetailClient({
             type="button"
             disabled={busy}
             onClick={() => void setStatus("ACTIVE")}
-            className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-medium text-white"
+            className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-contrast transition hover:bg-brand-strong"
           >
             Publish
           </button>
@@ -171,7 +171,7 @@ export default function MeetingDetailClient({
             type="button"
             disabled={busy}
             onClick={() => void setStatus("CLOSED")}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-line px-3 py-2 text-sm text-ink transition hover:bg-card-muted"
           >
             Close poll
           </button>
@@ -179,14 +179,14 @@ export default function MeetingDetailClient({
         <button
           type="button"
           onClick={() => void copyShare()}
-          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
+          className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong"
         >
           Copy share link
         </button>
         <Link
           href={`/m/${meeting.slug}`}
           target="_blank"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-lg border border-line px-3 py-2 text-sm text-ink transition hover:bg-card-muted"
         >
           Open poll →
         </Link>
@@ -195,54 +195,55 @@ export default function MeetingDetailClient({
       {(msg || err) && (
         <p
           className={`rounded-lg px-3 py-2 text-sm ${
-            err ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"
+            err ? "bg-danger-soft text-danger" : "bg-accent-soft text-accent"
           }`}
         >
           {err || msg}
         </p>
       )}
 
-      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <p className="text-xs font-medium text-slate-500">Share this link</p>
-        <code className="mt-1 block break-all text-xs text-slate-700">
+      <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
+        <p className="text-xs font-medium text-ink-subtle">Share this link</p>
+        <code className="mt-1 block break-all text-xs text-ink-muted">
           {shareUrl}
         </code>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-ink-subtle">
           {formatDateRange(meeting.dates)} · {formatTime12(meeting.startTime)}–
           {formatTime12(meeting.endTime)} {timezoneLabel(meeting.timezone)}
         </p>
       </div>
 
-      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <h2 className="text-sm font-semibold">
+      <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
+        <h2 className="text-sm font-semibold text-ink">
           Responses ({meeting.responses.length})
         </h2>
         {meeting.responses.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-ink-subtle">
             Waiting for people to paint availability…
           </p>
         ) : (
-          <ul className="mt-2 divide-y divide-slate-100">
+          <ul className="mt-2 divide-y divide-line">
             {meeting.responses.map((r) => (
-              <li key={r.id} className="flex justify-between py-2 text-sm">
+              <li
+                key={r.id}
+                className="flex justify-between py-2 text-sm text-ink"
+              >
                 <span className="font-medium">{r.displayName}</span>
-                <span className="text-slate-500">{r.slots.length} slots</span>
+                <span className="text-ink-subtle">{r.slots.length} slots</span>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Pick the final time
-        </h2>
-        <p className="mt-1 text-xs text-slate-500">
+      <div className="rounded-2xl border border-brand/30 bg-brand-soft p-4">
+        <h2 className="text-sm font-semibold text-ink">Pick the final time</h2>
+        <p className="mt-1 text-xs text-ink-muted">
           After you lock it, everyone can download a calendar file for their
           phone.
         </p>
 
-        <label className="mt-3 block text-xs text-slate-500">
+        <label className="mt-3 block text-xs text-ink-muted">
           Start (most free first)
         </label>
         <select
@@ -258,7 +259,7 @@ export default function MeetingDetailClient({
           ))}
         </select>
 
-        <label className="mt-3 block text-xs text-slate-500">Duration</label>
+        <label className="mt-3 block text-xs text-ink-muted">Duration</label>
         <select
           className={input}
           value={duration}
@@ -271,14 +272,14 @@ export default function MeetingDetailClient({
           ))}
         </select>
 
-        <label className="mt-3 block text-xs text-slate-500">Title</label>
+        <label className="mt-3 block text-xs text-ink-muted">Title</label>
         <input
           className={input}
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
 
-        <label className="mt-3 block text-xs text-slate-500">
+        <label className="mt-3 block text-xs text-ink-muted">
           Location (optional)
         </label>
         <input
@@ -288,7 +289,7 @@ export default function MeetingDetailClient({
           placeholder="Fellowship Hall"
         />
 
-        <label className="mt-3 block text-xs text-slate-500">
+        <label className="mt-3 block text-xs text-ink-muted">
           Notes (optional)
         </label>
         <textarea
@@ -302,7 +303,7 @@ export default function MeetingDetailClient({
           type="button"
           disabled={busy || !slotKey}
           onClick={() => void finalize()}
-          className="mt-4 w-full rounded-xl bg-sky-700 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="mt-4 w-full rounded-xl bg-brand py-3 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
         >
           {meeting.chosenSlotKey ? "Update meeting" : "Lock time & close poll"}
         </button>
@@ -310,7 +311,7 @@ export default function MeetingDetailClient({
         {meeting.chosenSlotKey && (
           <a
             href={icsUrl}
-            className="mt-2 flex w-full items-center justify-center rounded-xl border border-emerald-600 py-3 text-sm font-semibold text-emerald-800"
+            className="mt-2 flex w-full items-center justify-center rounded-xl border border-accent py-3 text-sm font-semibold text-accent transition hover:bg-accent-soft"
           >
             Download calendar (.ics)
           </a>

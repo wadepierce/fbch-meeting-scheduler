@@ -2,6 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getBaseUrl } from "@/lib/base-url";
+import AppHeader from "@/components/AppHeader";
 import MeetingDetailClient from "@/components/MeetingDetailClient";
 
 interface Props {
@@ -29,21 +31,23 @@ export default async function MeetingDetailPage({ params }: Props) {
   });
   if (!meeting) notFound();
 
-  const publicBase =
-    process.env.APP_URL ||
-    (process.env.RAILWAY_PUBLIC_DOMAIN
-      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : "http://localhost:3000");
+  const publicBase = await getBaseUrl();
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-8">
-      <Link href="/app" className="text-sm font-medium text-sky-700">
-        ← All meetings
-      </Link>
-      <h1 className="mt-2 text-2xl font-bold text-slate-900">{meeting.title}</h1>
-      <div className="mt-4">
-        <MeetingDetailClient meeting={meeting} publicBase={publicBase} />
-      </div>
-    </main>
+    <>
+      <AppHeader session={session} active="meetings" />
+      <main className="mx-auto max-w-lg px-4 py-8">
+        <Link
+          href="/app"
+          className="text-sm font-medium text-brand-text hover:underline"
+        >
+          ← All meetings
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold text-ink">{meeting.title}</h1>
+        <div className="mt-4">
+          <MeetingDetailClient meeting={meeting} publicBase={publicBase} />
+        </div>
+      </main>
+    </>
   );
 }
