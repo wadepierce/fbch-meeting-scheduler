@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Planning Center events & text-out headcounts
+
+- **Events page** (`/app/events`): pulls upcoming events from the Planning Center
+  calendar (Personal Access Token via `PCO_APP_ID`/`PCO_SECRET`), with text search,
+  date-range filter, and sorting; manual headcount creation works without PCO.
+- **Text-out headcounts**: one tap turns an event into a public RSVP page
+  (`/r/{slug}`) and opens Messages with a prefilled text + link. People reply
+  *I'll be there / Maybe / Can't* with a party size; totals show live on the
+  organizer page. Responses are editable from the same device; headcounts can be
+  closed/reopened/deleted. Texted links render a branded preview card (OG image).
+- Schema: `Rsvp` + `RsvpResponse` models.
+
 ## Unreleased — Mobile polish, invite emails, print & share
 
 - **Mobile header**: the organizer nav collapses into a hamburger menu on phones

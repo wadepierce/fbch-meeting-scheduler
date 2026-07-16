@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import LogoutButton from "./LogoutButton";
 import type { SessionUser } from "@/lib/auth";
 
-type NavKey = "meetings" | "team" | "security";
+type NavKey = "meetings" | "events" | "team" | "security";
 
 export default function AppHeader({
   session,
@@ -20,6 +20,7 @@ export default function AppHeader({
 
   const links: { key: NavKey; href: string; label: string; show: boolean }[] = [
     { key: "meetings", href: "/app", label: "Meetings", show: true },
+    { key: "events", href: "/app/events", label: "Events", show: true },
     { key: "team", href: "/app/team", label: "Team", show: session.isAdmin },
     { key: "security", href: "/app/security", label: "Passkeys", show: true },
   ].filter((l) => l.show) as typeof links;

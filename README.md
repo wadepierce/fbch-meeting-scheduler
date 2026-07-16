@@ -56,6 +56,7 @@ then add a passkey from the **Passkeys** page.
 | `SMTP_PORT` | optional | Defaults to `587` (`465` = implicit TLS). |
 | `SMTP_SECURE` | optional | `true` to force TLS (usually only for port 465). |
 | `EMAIL_FROM` | optional | From address, e.g. `FBCH Scheduler <meetings@fbchenrietta.org>`. Defaults to `SMTP_USER`. |
+| `PCO_APP_ID` `PCO_SECRET` | optional | Planning Center Personal Access Token — enables the Events page pulling from the church calendar. |
 
 ## Sending invite emails (free)
 
@@ -73,6 +74,23 @@ send the emails itself, point the `SMTP_*` vars at any free provider:
 
 Set `EMAIL_FROM` to a verified sender. When configured, creating an invite emails it
 automatically and the Team page shows a **Resend email** action.
+
+## Planning Center events & text-out headcounts
+
+The **Events** page pulls upcoming events from the Planning Center calendar so you can
+search, filter by date, sort, and — for any event — spin up a **headcount page** in one
+tap. "Text it" opens your Messages app with a prefilled invitation + link; people tap
+the link, answer *I'll be there / Maybe / Can't*, and say how many they're bringing.
+The organizer page totals it live ("Plan for 23, up to 27 with maybes"). Texted links
+show a branded preview card automatically.
+
+To connect Planning Center (free):
+
+1. Sign in at `https://api.planningcenteronline.com/oauth/applications`
+2. Create a **Personal Access Token**
+3. Set `PCO_APP_ID` and `PCO_SECRET` in Railway
+
+No token? Headcounts can still be created manually on the Events page.
 
 ## Railway
 

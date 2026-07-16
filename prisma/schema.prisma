@@ -111,3 +111,54 @@ enum MeetingStatus {
   ACTIVE
   CLOSED
 }
+
+/// A headcount / RSVP page for an event — usually created from a
+/// Planning Center calendar event, or entered manually.
+model Rsvp {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  title         String
+  description   String?        @db.Text
+  location      String?
+  startsAt      DateTime
+  endsAt        DateTime?
+  timezone      String         @default("America/Chicago")
+  status        RsvpStatus     @default(OPEN)
+  pcoEventId    String?
+  pcoInstanceId String?
+  createdById   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  responses     RsvpResponse[]
+
+  @@index([status])
+  @@index([startsAt])
+}
+
+model RsvpResponse {
+  id          String     @id @default(cuid())
+  rsvpId      String
+  rsvp        Rsvp       @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  guestToken  String
+  displayName String
+  answer      RsvpAnswer
+  /// How many people this response covers (family/party size)
+  count       Int        @default(1)
+  note        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([rsvpId, guestToken])
+  @@index([rsvpId])
+}
+
+enum RsvpStatus {
+  OPEN
+  CLOSED
+}
+
+enum RsvpAnswer {
+  YES
+  MAYBE
+  NO
+}
