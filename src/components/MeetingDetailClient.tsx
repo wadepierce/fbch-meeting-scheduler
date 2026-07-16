@@ -309,12 +309,34 @@ export default function MeetingDetailClient({
         </button>
 
         {meeting.chosenSlotKey && (
-          <a
-            href={icsUrl}
-            className="mt-2 flex w-full items-center justify-center rounded-xl border border-accent py-3 text-sm font-semibold text-accent transition hover:bg-accent-soft"
-          >
-            Download calendar (.ics)
-          </a>
+          <div className="mt-2 space-y-2">
+            <a
+              href={icsUrl}
+              className="flex w-full items-center justify-center rounded-xl border border-accent py-3 text-sm font-semibold text-accent transition hover:bg-accent-soft"
+            >
+              Download calendar (.ics)
+            </a>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href={`/app/${meeting.id}/print`}
+                className="flex items-center justify-center rounded-xl border border-line py-2.5 text-sm font-medium text-ink transition hover:bg-card-muted"
+              >
+                Print / PDF
+              </Link>
+              <a
+                href={`/m/${meeting.slug}/opengraph-image`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center rounded-xl border border-line py-2.5 text-sm font-medium text-ink transition hover:bg-card-muted"
+              >
+                Share image
+              </a>
+            </div>
+            <p className="text-center text-xs text-ink-subtle">
+              “Share image” makes a picture you can text or post. Sharing the poll
+              link also shows this preview automatically.
+            </p>
+          </div>
         )}
       </div>
     </div>

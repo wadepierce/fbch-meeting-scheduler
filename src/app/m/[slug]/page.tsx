@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
@@ -12,6 +13,31 @@ import {
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+/**
+ * Give shared poll links a real title + description. The branded preview image
+ * comes from the sibling opengraph-image.tsx automatically.
+ */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const meeting = await prisma.meeting
+    .findUnique({ where: { slug } })
+    .catch(() => null);
+  if (!meeting || meeting.status === "DRAFT") {
+    return { title: "FBCH Meeting Scheduler" };
+  }
+  const title = meeting.meetingSubject || meeting.title;
+  const description = meeting.chosenSlotKey
+    ? "It's set — see the details and add it to your calendar."
+    : "Pick the times that work for you.";
+  const ogTitle = `${title} · First Baptist Church Henrietta`;
+  return {
+    title: `${title} · FBCH`,
+    description,
+    openGraph: { title: ogTitle, description },
+    twitter: { card: "summary_large_image", title: ogTitle, description },
+  };
 }
 
 export default async function PublicMeetingPage({ params }: Props) {
