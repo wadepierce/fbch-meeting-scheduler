@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Invited organizers (staff/committee) who can create polls
+model Organizer {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passcodeHash String
+  active       Boolean   @default(true)
+  isAdmin      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  polls        Meeting[]
+}
+
+model Meeting {
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  title               String
+  description         String?
+  status              MeetingStatus      @default(DRAFT)
+  timezone            String             @default("America/Chicago")
+  slotMinutes         Int                @default(30)
+  startTime           String
+  endTime             String
+  dates               String[]
+  durationHintMinutes Int?
+  createdById         String?
+  createdBy           Organizer?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  chosenSlotKey       String?
+  meetingDurationMin  Int?
+  meetingSubject      String?
+  meetingBody         String?            @db.Text
+  meetingLocation     String?
+  finalizedAt         DateTime?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  responses           MeetingResponse[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model MeetingResponse {
+  id          String   @id @default(cuid())
+  meetingId   String
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  guestToken  String?
+  displayName String
+  email       String?
+  slots       String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([meetingId, guestToken])
+  @@index([meetingId])
+}
+
+enum MeetingStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}

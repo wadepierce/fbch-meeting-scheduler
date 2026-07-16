@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FBCH Meeting Scheduler
 
-## Getting Started
+Phone-friendly when2meet-style availability polls for **First Baptist Church Henrietta**.
 
-First, run the development server:
+- Organizers sign in with **email + passcode** (invite-only)
+- Create a poll → share `/m/{slug}`
+- Participants enter **name** and paint free times
+- Lock a time → everyone **downloads .ics** for iPhone/Android calendar
+
+Planned domain: `meetings.fbchenrietta.org`  
+Railway project: **Wade's Custom Apps**
+
+## Local dev
 
 ```bash
+cp .env.example .env
+# set DATABASE_URL, SESSION_SECRET, BOOTSTRAP_ADMIN_*
+npm install
+npx prisma db push
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 → **Organizer sign in** with bootstrap email/passcode.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Railway
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Service in **Wade's Custom Apps**
+2. Attach Postgres (`DATABASE_URL`)
+3. Set env vars from `.env.example`
+4. Deploy (Nixpacks). Healthcheck: `/api/health`
+5. Custom domain DNS → Railway
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 · Prisma 6 · PostgreSQL · Tailwind 4 · JWT cookie sessions
