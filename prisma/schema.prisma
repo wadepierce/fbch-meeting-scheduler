@@ -24,6 +24,7 @@ model Organizer {
   polls        Meeting[]
   credentials  Credential[]
   invitesSent  Invite[]     @relation("InvitedBy")
+  quickPolls   Poll[]       @relation("PollCreator")
 }
 
 /// A WebAuthn / passkey credential bound to an organizer.
@@ -164,4 +165,92 @@ enum RsvpAnswer {
   YES
   MAYBE
   NO
+}
+
+/// A quick question poll (ratings, scales, this-or-that, choices) shared by link.
+model Poll {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  title        String
+  description  String?        @db.Text
+  status       PollStatus     @default(OPEN)
+  /// Show tallies to voters after they answer
+  showResults  Boolean        @default(true)
+  /// Ask voters for their name (off = anonymous)
+  collectNames Boolean        @default(true)
+  createdById  String?
+  createdBy    Organizer?     @relation("PollCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  questions    PollQuestion[]
+  votes        PollVote[]
+
+  @@index([status])
+}
+
+model PollQuestion {
+  id       String           @id @default(cuid())
+  pollId   String
+  poll     Poll             @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  order    Int
+  kind     PollQuestionKind
+  prompt   String
+  /// CHOICE / MULTI / THIS_OR_THAT options
+  options  String[]         @default([])
+  /// RATING: 1..scaleMax stars. SCALE: scaleMin..scaleMax.
+  scaleMin Int?
+  scaleMax Int?
+  minLabel String?
+  maxLabel String?
+  /// Allow a write-in "Other" answer (CHOICE / MULTI)
+  allowOther Boolean        @default(false)
+  answers  PollAnswer[]
+
+  @@index([pollId])
+}
+
+/// One ballot per device (guest cookie) per poll — prevents double voting
+/// while letting the same person edit their answers.
+model PollVote {
+  id          String       @id @default(cuid())
+  pollId      String
+  poll        Poll         @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  guestToken  String
+  displayName String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  answers     PollAnswer[]
+
+  @@unique([pollId, guestToken])
+  @@index([pollId])
+}
+
+model PollAnswer {
+  id         String       @id @default(cuid())
+  voteId     String
+  vote       PollVote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  questionId String
+  question   PollQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  /// Selected option indexes (choice kinds)
+  selections Int[]        @default([])
+  /// Numeric answer (RATING / SCALE)
+  value      Int?
+  /// Write-in text when "Other" was chosen
+  otherText  String?
+
+  @@unique([voteId, questionId])
+  @@index([questionId])
+}
+
+enum PollStatus {
+  OPEN
+  CLOSED
+}
+
+enum PollQuestionKind {
+  CHOICE
+  MULTI
+  THIS_OR_THAT
+  RATING
+  SCALE
 }
