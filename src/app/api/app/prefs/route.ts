@@ -16,6 +16,7 @@ export async function GET() {
       email: true,
       notifyPollResponses: true,
       notifyRsvpReplies: true,
+      showTour: true,
     },
   });
   if (!org) {
@@ -49,6 +50,9 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.notifyRsvpReplies === "boolean") {
     data.notifyRsvpReplies = body.notifyRsvpReplies;
   }
+  if (typeof body.showTour === "boolean") {
+    data.showTour = body.showTour;
+  }
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
@@ -60,6 +64,7 @@ export async function PATCH(req: NextRequest) {
       email: true,
       notifyPollResponses: true,
       notifyRsvpReplies: true,
+      showTour: true,
     },
   });
 

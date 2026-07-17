@@ -19,6 +19,8 @@ model Organizer {
   /// Self-service email notification preferences
   notifyPollResponses Boolean @default(true)
   notifyRsvpReplies   Boolean @default(true)
+  /// Show the first-run walkthrough tour (self-service; re-enable on Account)
+  showTour            Boolean @default(true)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   polls        Meeting[]

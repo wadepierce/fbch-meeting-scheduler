@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import AppHeader from "@/components/AppHeader";
 import PasskeyManager from "@/components/PasskeyManager";
 import NotificationSettings from "@/components/NotificationSettings";
+import TourSettings from "@/components/TourSettings";
 
 export default async function AccountPage() {
   const session = await getSession();
@@ -20,6 +21,10 @@ export default async function AccountPage() {
 
         <div className="mt-6">
           <NotificationSettings />
+        </div>
+
+        <div className="mt-4">
+          <TourSettings />
         </div>
 
         <h2 className="mt-8 text-lg font-semibold text-ink">Passkeys</h2>

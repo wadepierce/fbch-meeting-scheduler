@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — First-run welcome tour
+
+- **Walkthrough tour** on first sign-in: a 6-step card overlay covering Meetings,
+  Events, Headcounts, Polls, and Team/Account. Skip or finish and it never shows
+  again (persisted per organizer via `Organizer.showTour`, not a browser cookie —
+  so it stays dismissed across devices).
+- **Re-enable on Account**: a "Welcome tour" toggle brings it back on the next
+  app load.
+
 ## Unreleased — Quick question polls
 
 - **Polls** tab: build short polls mixing five question types — multiple choice
