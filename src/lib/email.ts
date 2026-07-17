@@ -2,9 +2,9 @@ import nodemailer, { type Transporter } from "nodemailer";
 
 /**
  * Email is sent over plain SMTP so any free provider works — set the SMTP_*
- * vars for Brevo (300/day free, verify one sender — no DNS needed), Resend,
- * SendGrid, Mailgun, Gmail, etc. If nothing is configured the app still works;
- * organizers just copy the invite link instead.
+ * vars for Resend (smtp.resend.com:465, user "resend", password = API key),
+ * Brevo, SendGrid, Mailgun, Gmail, etc. If nothing is configured the app still
+ * works; organizers just copy the invite link instead.
  */
 export function isEmailConfigured(): boolean {
   return Boolean(

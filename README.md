@@ -58,22 +58,32 @@ then add a passkey from the **Passkeys** page.
 | `EMAIL_FROM` | optional | From address, e.g. `FBCH Scheduler <meetings@fbchenrietta.org>`. Defaults to `SMTP_USER`. |
 | `PCO_APP_ID` `PCO_SECRET` | optional | Planning Center Personal Access Token — enables the Events page pulling from the church calendar. |
 
-## Sending invite emails (free)
+## Sending invite emails (free, via Resend)
 
 Emailing invites is **optional** — without it, organizers just copy the invite link
-(or use the "Email invite" button, which opens their own mail app). To have the app
-send the emails itself, point the `SMTP_*` vars at any free provider:
+(or use the "Email invite" button, which opens their own mail app). The app sends
+email over plain SMTP; **[Resend](https://resend.com)** is the recommended provider
+(3,000 emails/month free) and gives you a polished `meetings@fbchenrietta.org`
+from-address:
 
-- **[Brevo](https://www.brevo.com)** — recommended for the least setup. 300 emails/day
-  free, and you only verify **one sender address** (no DNS changes needed). Use
-  `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, and the SMTP login/key they give you.
-- **[Resend](https://resend.com)** — 3,000/month free; to email anyone you verify the
-  `fbchenrietta.org` domain (a few DNS records), which also gives you a polished
-  `meetings@fbchenrietta.org` from-address. SMTP host `smtp.resend.com`.
-- Any other SMTP provider (SendGrid, Mailgun, Gmail app password…) works too.
+1. Create a Resend account → **Domains** → add `fbchenrietta.org` and create the
+   DNS records it shows (SPF + DKIM) wherever the domain's DNS is hosted. Wait for
+   the domain to show **Verified**.
+2. **API Keys** → create a key (starts with `re_`).
+3. Set the env vars:
+   - `SMTP_HOST=smtp.resend.com`
+   - `SMTP_PORT=465`
+   - `SMTP_USER=resend` (literally the word "resend")
+   - `SMTP_PASS=re_...` (the API key)
+   - `EMAIL_FROM=FBCH Scheduler <meetings@fbchenrietta.org>` (any address on the
+     verified domain works)
 
-Set `EMAIL_FROM` to a verified sender. When configured, creating an invite emails it
-automatically and the Team page shows a **Resend email** action.
+Any other SMTP provider (Brevo, SendGrid, Mailgun, Gmail app password…) works with
+the same variables — Brevo is handy if you'd rather not touch DNS, since it only
+verifies a single sender address.
+
+When configured, creating an invite emails it automatically and the Team page shows
+a **Resend email** action.
 
 The same SMTP settings power **personal notifications**: each organizer gets an email
 when someone responds to their meeting polls or RSVPs to their headcounts, and can
