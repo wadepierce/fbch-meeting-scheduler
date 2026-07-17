@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — Fix broken invite links (internal redirect host)
+
+- Opening a shared invite link redirected to Railway's internal address
+  (`https://0.0.0.0:8080/…`) instead of the public site, so the recipient's
+  browser couldn't reach it and the invite looked broken. The link itself was
+  already minted from the clean public origin, but the `/invite/[token]`
+  handler built its sign-in and error redirects from `req.url` — which carries
+  the internal `host:port` behind the proxy. Those redirects now use
+  `getBaseUrl()`, the same canonical origin the link was generated with
+  (`APP_URL` → `RAILWAY_PUBLIC_DOMAIN` → port-stripped request host), so they
+  land on the public domain. Completes the port-stripping fix below, which only
+  covered link generation.
+
 ## Unreleased — Fix "restricted port" on shared links
 
 - Shared links (invites, polls, RSVPs) could come out as `https://host:PORT/...`
