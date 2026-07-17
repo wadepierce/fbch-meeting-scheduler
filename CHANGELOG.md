@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Fix "restricted port" on shared links
+
+- Shared links (invites, polls, RSVPs) could come out as `https://host:PORT/...`
+  when the deploy sat behind a proxy that forwarded an internal port — which
+  browsers reject with "Not allowed to use restricted port." `getBaseUrl()` now
+  prefers `RAILWAY_PUBLIC_DOMAIN` and strips the port from any request-derived
+  host (localhost keeps its port for dev). The same hardening is applied to the
+  passkey Relying Party ID / expected origins.
+
 ## Unreleased — First-run welcome tour
 
 - **Walkthrough tour** on first sign-in: a 6-step card overlay covering Meetings,
