@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getBaseUrl } from "@/lib/base-url";
+import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 import MeetingDetailClient from "@/components/MeetingDetailClient";
 
@@ -44,6 +45,12 @@ export default async function MeetingDetailPage({ params }: Props) {
           ← All meetings
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-ink">{meeting.title}</h1>
+        <p className="mt-1 text-sm text-ink-subtle">
+          {meeting.responses.length} response
+          {meeting.responses.length === 1 ? "" : "s"} ·{" "}
+          {formatViews(meeting.viewCount)}
+          <span className="text-ink-subtle"> of the share link</span>
+        </p>
         <div className="mt-4">
           <MeetingDetailClient meeting={meeting} publicBase={publicBase} />
         </div>

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — Last sign-in + share-link view counts
+
+- **Team page (admins):** each organizer shows **Last sign-in** (relative time,
+  with absolute date/time on hover). Updated on passkey sign-in, email/passcode
+  login, and opening an invite link.
+- **View counts** on shared links for availability meetings (`/m/…`), quick
+  polls (`/p/…`), and headcount RSVPs (`/r/…`). Shown on list + detail pages
+  for organizers. Link-preview bots and common crawlers are excluded so the
+  number reflects real opens.
+
 ## Unreleased — Fix passkey RP ID on Railway host
 
 - Passkey sign-in failed with **The RP ID "meetings.fbchenrietta.org" is invalid

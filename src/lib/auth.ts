@@ -105,6 +105,18 @@ export function toSessionUser(org: {
   return { id: org.id, email: org.email, name: org.name, isAdmin: org.isAdmin };
 }
 
+/** Stamp lastSignedInAt without blocking sign-in if the write fails. */
+export async function recordOrganizerSignIn(organizerId: string): Promise<void> {
+  try {
+    await prisma.organizer.update({
+      where: { id: organizerId },
+      data: { lastSignedInAt: new Date() },
+    });
+  } catch (err) {
+    console.warn("[auth] recordOrganizerSignIn failed", organizerId, err);
+  }
+}
+
 /** Sign a specific organizer in (used by passkey + invite flows). */
 export async function signInOrganizer(org: {
   id: string;
@@ -114,6 +126,7 @@ export async function signInOrganizer(org: {
 }): Promise<SessionUser> {
   const user = toSessionUser(org);
   await createSession(user);
+  await recordOrganizerSignIn(org.id);
   return user;
 }
 
@@ -141,6 +154,7 @@ export async function loginWithPasscode(
     isAdmin: org.isAdmin,
   };
   await createSession(user);
+  await recordOrganizerSignIn(org.id);
   return user;
 }
 

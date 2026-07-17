@@ -5,6 +5,7 @@ import {
   createSessionToken,
   sessionCookieOptions,
   toSessionUser,
+  recordOrganizerSignIn,
   SESSION_COOKIE,
 } from "@/lib/auth";
 
@@ -41,6 +42,7 @@ export async function GET(
   }
 
   const jwt = await createSessionToken(toSessionUser(result.organizer));
+  await recordOrganizerSignIn(result.organizer.id);
   const res = NextResponse.redirect(new URL("/app/passkey?welcome=1", base));
   res.cookies.set(SESSION_COOKIE, jwt, sessionCookieOptions());
   return res;

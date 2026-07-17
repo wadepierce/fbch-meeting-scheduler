@@ -30,6 +30,7 @@ interface RsvpRow {
   yes: number;
   maybe: number;
   no: number;
+  viewCount?: number;
 }
 
 const TZ = "America/Chicago";
@@ -223,6 +224,9 @@ export default function EventsClient({
                     <p className="text-xs text-ink-subtle">
                       {fmtWhen(r.startsAt)}
                       {r.location ? ` · ${r.location}` : ""}
+                      {typeof r.viewCount === "number"
+                        ? ` · ${r.viewCount} view${r.viewCount === 1 ? "" : "s"}`
+                        : ""}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent">

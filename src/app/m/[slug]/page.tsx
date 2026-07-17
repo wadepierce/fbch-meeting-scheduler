@@ -10,6 +10,7 @@ import {
   generateSlotKeys,
   rankBestSlots,
 } from "@/lib/meeting-poll";
+import { recordPublicView } from "@/lib/views";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -47,6 +48,9 @@ export default async function PublicMeetingPage({ params }: Props) {
     include: { responses: true },
   });
   if (!meeting || meeting.status === "DRAFT") notFound();
+
+  // Count real human opens of the shared link (bots/previews skipped).
+  await recordPublicView("meeting", meeting.id);
 
   const guestToken = (await cookies()).get("fbch_guest")?.value ?? null;
   const validKeys = generateSlotKeys({

@@ -8,6 +8,7 @@ import {
   pollShareMessage,
   type QuestionShape,
 } from "@/lib/polls";
+import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 import ShareActions from "@/components/ShareActions";
 import PollResults from "@/components/PollResults";
@@ -60,6 +61,8 @@ export default async function PollDetailPage({ params }: Props) {
             <h1 className="text-2xl font-bold text-ink">{poll.title}</h1>
             <p className="mt-1 text-sm text-ink-subtle">
               {poll.votes.length} response{poll.votes.length === 1 ? "" : "s"}
+              {" · "}
+              {formatViews(poll.viewCount)}
               {poll.collectNames ? "" : " · anonymous"}
               {poll.showResults ? "" : " · results hidden from voters"}
             </p>

@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import VoteClient from "@/components/VoteClient";
 import PollResults from "@/components/PollResults";
+import { recordPublicView } from "@/lib/views";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -38,6 +39,9 @@ export default async function PublicPollPage({ params }: Props) {
     },
   });
   if (!poll) notFound();
+
+  // Count real human opens of the shared link (bots/previews skipped).
+  await recordPublicView("poll", poll.id);
 
   const questions = poll.questions as unknown as QuestionShape[];
   const guestToken = (await cookies()).get("fbch_guest")?.value ?? null;

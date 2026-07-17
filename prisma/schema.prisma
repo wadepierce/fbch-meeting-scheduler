@@ -21,6 +21,8 @@ model Organizer {
   notifyRsvpReplies   Boolean @default(true)
   /// Show the first-run walkthrough tour (self-service; re-enable on Account)
   showTour            Boolean @default(true)
+  /// Last successful sign-in (passkey, passcode, or invite link)
+  lastSignedInAt      DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   polls        Meeting[]
@@ -88,6 +90,8 @@ model Meeting {
   meetingBody         String?            @db.Text
   meetingLocation     String?
   finalizedAt         DateTime?
+  /// Public /m/{slug} page opens (bots/link previews excluded)
+  viewCount           Int                @default(0)
 
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
@@ -133,6 +137,8 @@ model Rsvp {
   pcoEventId    String?
   pcoInstanceId String?
   createdById   String?
+  /// Public /r/{slug} page opens (bots/link previews excluded)
+  viewCount     Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   responses     RsvpResponse[]
@@ -182,6 +188,8 @@ model Poll {
   collectNames Boolean        @default(true)
   createdById  String?
   createdBy    Organizer?     @relation("PollCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  /// Public /p/{slug} page opens (bots/link previews excluded)
+  viewCount    Int            @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   questions    PollQuestion[]

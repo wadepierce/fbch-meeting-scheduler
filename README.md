@@ -9,6 +9,7 @@ Phone-friendly when2meet-style availability polls for **First Baptist Church Hen
 - Participants enter **name** and paint free times
 - Lock a time → everyone **downloads .ics** for iPhone/Android calendar
 - **Dark & light** themes with strong contrast (follows the system, with a manual toggle)
+- Admins see **last sign-in** per team member; organizers see **view counts** on shared poll / meeting / headcount links
 
 Planned domain: `meetings.fbchenrietta.org`
 Railway project: **Wade's Custom Apps**

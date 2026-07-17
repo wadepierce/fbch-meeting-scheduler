@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getBaseUrl } from "@/lib/base-url";
 import { tallyRsvp, formatEventWhen, rsvpShareMessage } from "@/lib/rsvp";
+import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 import ShareActions from "@/components/ShareActions";
 import RsvpStatusButtons from "@/components/RsvpStatusButtons";
@@ -81,7 +82,8 @@ export default async function RsvpDetailPage({ params }: Props) {
         <p className="mt-2 text-center text-xs text-ink-subtle">
           Plan for <span className="font-semibold text-ink">{tally.yes}</span>
           {tally.maybe > 0 ? ` (up to ${tally.yes + tally.maybe} with maybes)` : ""} ·{" "}
-          {tally.replies} repl{tally.replies === 1 ? "y" : "ies"}
+          {tally.replies} repl{tally.replies === 1 ? "y" : "ies"} ·{" "}
+          {formatViews(rsvp.viewCount)}
         </p>
 
         {/* Share */}

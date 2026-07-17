@@ -6,6 +6,7 @@ import { tallyRsvp, formatEventWhen } from "@/lib/rsvp";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import RsvpClient from "@/components/RsvpClient";
+import { recordPublicView } from "@/lib/views";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -36,6 +37,9 @@ export default async function RsvpPage({ params }: Props) {
     include: { responses: true },
   });
   if (!rsvp) notFound();
+
+  // Count real human opens of the shared link (bots/previews skipped).
+  await recordPublicView("rsvp", rsvp.id);
 
   const guestToken = (await cookies()).get("fbch_guest")?.value ?? null;
   const mine = guestToken

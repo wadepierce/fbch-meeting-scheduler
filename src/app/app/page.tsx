@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatDateRange } from "@/lib/meeting-poll";
+import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 
 export default async function AppHomePage() {
@@ -87,7 +88,8 @@ export default async function AppHomePage() {
                     <h2 className="font-semibold text-ink">{m.title}</h2>
                     <p className="mt-0.5 text-xs text-ink-subtle">
                       {formatDateRange(m.dates)} · {m._count.responses} response
-                      {m._count.responses === 1 ? "" : "s"}
+                      {m._count.responses === 1 ? "" : "s"} ·{" "}
+                      {formatViews(m.viewCount)}
                     </p>
                   </div>
                   <span

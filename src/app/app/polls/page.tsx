@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 
 export default async function PollsPage() {
@@ -54,7 +55,8 @@ export default async function PollsPage() {
                       {p._count.questions} question
                       {p._count.questions === 1 ? "" : "s"} ·{" "}
                       {p._count.votes} response
-                      {p._count.votes === 1 ? "" : "s"}
+                      {p._count.votes === 1 ? "" : "s"} ·{" "}
+                      {formatViews(p.viewCount)}
                     </p>
                   </div>
                   <span

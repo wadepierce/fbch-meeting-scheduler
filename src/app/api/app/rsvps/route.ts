@@ -41,6 +41,7 @@ export async function GET() {
         yes,
         maybe,
         no,
+        viewCount: r.viewCount,
       };
     }),
   });
