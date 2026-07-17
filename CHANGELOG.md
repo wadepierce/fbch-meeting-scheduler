@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — Quick question polls
+
+- **Polls** tab: build short polls mixing five question types — multiple choice
+  (with optional write-in "Other"), checkboxes, this-or-that, star ratings, and
+  numeric scales with end labels. Options for anonymous answers and hiding
+  results from voters.
+- **Public voting page** (`/p/{slug}`): mobile-first tap-to-answer UI, share via
+  Text it / copy with a branded link preview card.
+- **One vote per device** via the guest cookie — the same cookie that prevents
+  double voting also lets a voter change their answers later. Closing a poll
+  locks it (new ballots rejected) while keeping results visible.
+- **Live results**: percentage bars per option, write-in lists, star/scale
+  averages with distribution histograms, and who answered (when names are on).
+
 ## Unreleased — Phone-first availability picker
 
 - **Fixed pages rendering zoomed-out/tiny on phones**: the custom `viewport`
