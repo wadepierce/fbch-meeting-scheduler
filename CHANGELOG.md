@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Phone-first availability picker
+
+- **Fixed pages rendering zoomed-out/tiny on phones**: the custom `viewport`
+  export had replaced Next's default `width=device-width, initial-scale=1`
+  meta tag, and the poll page's grid column could expand past the viewport
+  (`min-width:auto`) — both fixed; every page now lays out at true device width.
+- **Day-at-a-time picker on phones** for availability polls: swipeable day
+  chips (with per-day count badges) + large tap-to-toggle time buttons, and a
+  readable per-slot heatmap list with names in group view. The paint grid is
+  unchanged on tablet/desktop widths.
+
 ## Unreleased — Self-service email notifications
 
 - **Per-organizer notification settings** on the new **Account** page (with

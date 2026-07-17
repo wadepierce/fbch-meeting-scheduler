@@ -177,8 +177,10 @@ export default function RespondClient({
         </button>
       </div>
 
+      {/* min-w-0 stops wide children (grid table / day chips) from expanding
+          the grid tracks past the viewport, which makes phones zoom out */}
       <div className="grid gap-5 lg:grid-cols-[1fr_260px]">
-        <div>
+        <div className="min-w-0">
           {mode === "mine" && !closed && (
             <div className="mb-4 rounded-2xl border border-line bg-card p-4 shadow-sm">
               <label className="text-sm font-medium text-ink">Your name</label>

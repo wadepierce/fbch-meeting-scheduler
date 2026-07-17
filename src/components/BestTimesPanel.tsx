@@ -16,7 +16,7 @@ export default function BestTimesPanel({
   timezone,
 }: Props) {
   return (
-    <div className="rounded-xl border border-line bg-card p-4 shadow-sm">
+    <div className="min-w-0 rounded-xl border border-line bg-card p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-ink">Best times</h3>
       {durationHintMinutes ? (
         <p className="mt-0.5 text-xs text-ink-subtle">

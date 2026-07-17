@@ -77,6 +77,22 @@ export default function AvailabilityGrid({
     selectedRef.current = selected;
   }, [selected]);
 
+  // Phones get a day-at-a-time picker instead of the full grid.
+  const [activeDateState, setActiveDate] = useState(dates[0] ?? "");
+  const activeDate = dates.includes(activeDateState)
+    ? activeDateState
+    : (dates[0] ?? "");
+
+  /** Painted-slot count per day (badges on the mobile day chips). */
+  const perDayCount = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const key of selected) {
+      const date = key.slice(0, 10);
+      m.set(date, (m.get(date) ?? 0) + 1);
+    }
+    return m;
+  }, [selected]);
+
   const applyCell = useCallback(
     (key: string, value: boolean) => {
       const next = new Set(selectedRef.current);
@@ -106,11 +122,8 @@ export default function AvailabilityGrid({
   ) {
     if (readOnly || mode !== "mine") return;
     e.preventDefault();
-    const isRight =
-      "button" in e && (e.button === 2 || e.shiftKey);
+    const isRight = "button" in e && (e.button === 2 || e.shiftKey);
     const currently = selectedRef.current.has(key);
-    paintValue.current = isRight ? false : !currently;
-    // If shift or right-click → erase; if empty → paint; if filled → erase on click
     if (isRight) paintValue.current = false;
     else paintValue.current = !currently;
 
@@ -126,8 +139,152 @@ export default function AvailabilityGrid({
 
   const hoverInfo = hoverKey ? aggMap.get(hoverKey) : null;
 
-  return (
-    <div className="relative">
+  // ---------------------------------------------------------------- mobile
+  const mobile = (
+    <div className="sm:hidden">
+      {/* Day selector — pt/px headroom keeps the count badge inside the
+          scroll container so it never adds a vertical scroll/layout shift */}
+      <div className="-mx-1 -mt-1.5 flex gap-1.5 overflow-x-auto px-1 pb-2 pt-1.5">
+        {dates.map((date) => {
+          const h = dateHeader(date);
+          const isActive = date === activeDate;
+          const count = perDayCount.get(date) ?? 0;
+          return (
+            <button
+              key={date}
+              type="button"
+              onClick={() => setActiveDate(date)}
+              aria-current={isActive ? "date" : undefined}
+              className={`relative flex min-w-[3.5rem] shrink-0 flex-col items-center rounded-xl border px-2 py-2 transition ${
+                isActive
+                  ? "border-brand bg-brand text-brand-contrast"
+                  : "border-line bg-card text-ink"
+              }`}
+            >
+              <span
+                className={`text-[10px] font-medium uppercase tracking-wide ${
+                  isActive ? "opacity-80" : "text-ink-subtle"
+                }`}
+              >
+                {h.weekday}
+              </span>
+              <span className="text-base font-bold leading-tight">{h.day}</span>
+              <span
+                className={`text-[10px] ${isActive ? "opacity-80" : "text-ink-subtle"}`}
+              >
+                {h.month}
+              </span>
+              {mode === "mine" && count > 0 && (
+                <span
+                  className={`absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+                    isActive
+                      ? "bg-accent text-accent-contrast"
+                      : "bg-accent text-accent-contrast"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Slots for the active day */}
+      {mode === "mine" ? (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            {times.map((time) => {
+              const key = `${activeDate}T${time}`;
+              const isFree = selected.has(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={readOnly}
+                  aria-pressed={isFree}
+                  aria-label={`${activeDate} ${formatTime12(time)}${
+                    isFree ? ", available" : ", not available"
+                  }`}
+                  onClick={() => applyCell(key, !isFree)}
+                  className={`flex min-h-12 items-center justify-between rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                    isFree
+                      ? "border-accent bg-accent text-accent-contrast"
+                      : "border-line bg-card text-ink"
+                  } disabled:opacity-60`}
+                >
+                  <span>{formatTime12(time)}</span>
+                  {isFree ? (
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  ) : (
+                    <span className="text-xs text-ink-subtle">Free?</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {!readOnly && (
+            <p className="mt-2 text-xs text-ink-subtle">
+              Tap the times you&apos;re free, then check the other days above.
+            </p>
+          )}
+        </>
+      ) : (
+        <ul className="space-y-1.5">
+          {times.map((time) => {
+            const key = `${activeDate}T${time}`;
+            const agg = aggMap.get(key);
+            const count = agg?.count ?? 0;
+            const style: React.CSSProperties =
+              count > 0
+                ? { backgroundColor: heatmapColor(count, responseCount) }
+                : {};
+            return (
+              <li
+                key={key}
+                style={style}
+                className={`rounded-xl border border-line/60 px-3 py-2.5 ${
+                  count === 0
+                    ? "bg-card-muted"
+                    : heatmapTextClass(count, responseCount)
+                }`}
+              >
+                <div className="flex items-center justify-between text-sm font-medium">
+                  <span>{formatTime12(time)}</span>
+                  <span className="text-xs font-semibold">
+                    {count} of {responseCount} free
+                  </span>
+                </div>
+                {count > 0 && agg && (
+                  <p className="mt-0.5 truncate text-[11px] opacity-80">
+                    {agg.names.slice(0, 5).join(", ")}
+                    {agg.names.length > 5
+                      ? ` +${agg.names.length - 5} more`
+                      : ""}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+
+  // --------------------------------------------------------------- desktop
+  const desktop = (
+    <div className="relative hidden sm:block">
       <div
         className="overflow-auto rounded-xl border border-line bg-card shadow-sm"
         onContextMenu={(e) => e.preventDefault()}
@@ -240,6 +397,13 @@ export default function AvailabilityGrid({
           while dragging to erase.
         </p>
       )}
+    </div>
+  );
+
+  return (
+    <div>
+      {mobile}
+      {desktop}
     </div>
   );
 }
