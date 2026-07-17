@@ -2,7 +2,10 @@
 nixPkgs = ["nodejs_22", "openssl"]
 
 [phases.install]
-cmds = ["npm ci"]
+# --include=dev: Railway injects service vars (e.g. NODE_ENV=production) into
+# the build, which makes npm omit devDependencies — but next build needs
+# typescript + @types/* for its type check.
+cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npx prisma generate", "npm run build"]
