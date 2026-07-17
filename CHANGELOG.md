@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Fix passkey RP ID on Railway host
+
+- Passkey sign-in failed with **The RP ID "meetings.fbchenrietta.org" is invalid
+  for this domain** when the app was opened on the Railway default host
+  (`*.up.railway.app`) while env still named the custom domain. WebAuthn requires
+  the RP ID to be the browser's hostname (or a parent domain of it).
+  `getRelyingParty()` now always derives the RP ID from the request host and only
+  applies `RP_ID` when it is a valid domain suffix of that host — it no longer
+  prefers `RAILWAY_PUBLIC_DOMAIN` / a mismatched custom domain. Canonical
+  `APP_URL` for now: the Railway production origin (custom domain later).
+
 ## Unreleased — Fix broken invite links (internal redirect host)
 
 - Opening a shared invite link redirected to Railway's internal address

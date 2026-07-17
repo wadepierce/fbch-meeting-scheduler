@@ -50,8 +50,8 @@ then add a passkey from the **Passkeys** page.
 | `BOOTSTRAP_ADMIN_EMAIL` | first deploy | Seeds the first admin when the DB is empty |
 | `BOOTSTRAP_ADMIN_PASSCODE` | first deploy | Passcode for that admin (used once, then switch to a passkey) |
 | `BOOTSTRAP_ADMIN_NAME` | optional | Defaults to `Admin` |
-| `APP_URL` | recommended | Absolute origin used for invite links (e.g. `https://meetings.fbchenrietta.org`). Falls back to the request host. |
-| `RP_ID` | optional | WebAuthn Relying Party ID. Defaults to the request hostname; set it (e.g. `fbchenrietta.org`) only if passkeys must work across multiple subdomains. |
+| `APP_URL` | recommended | Absolute origin for invite/RSVP links. Use the URL people actually open (today: `https://fbch-meeting-scheduler-production.up.railway.app`). Falls back to the request host. |
+| `RP_ID` | optional | WebAuthn Relying Party ID. Defaults to the **request** hostname. Only set a parent domain (e.g. `fbchenrietta.org`) if every access host is under it — never set a custom domain RP ID while people use the Railway `*.up.railway.app` host. |
 | `SMTP_HOST` `SMTP_USER` `SMTP_PASS` | optional | Enables emailing invites. Set all three to turn it on. |
 | `SMTP_PORT` | optional | Defaults to `587` (`465` = implicit TLS). |
 | `SMTP_SECURE` | optional | `true` to force TLS (usually only for port 465). |
@@ -113,8 +113,9 @@ No token? Headcounts can still be created manually on the Events page.
 2. Attach Postgres (`DATABASE_URL`)
 3. Set env vars from the table above
 4. Deploy (Nixpacks). Healthcheck: `/api/health`
-5. Custom domain DNS → Railway. Make sure `APP_URL` matches the final domain so passkeys
-   register against the right origin.
+5. Set `APP_URL` to the public origin people open (Railway default host until the
+   custom domain is live). Passkeys bind to the host in the address bar — open the
+   app only via that same origin when registering or signing in.
 
 ## Stack
 
