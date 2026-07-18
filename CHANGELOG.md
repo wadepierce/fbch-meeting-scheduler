@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Delete meetings
+
+- **Delete a meeting** from its detail page: a Delete action (with a confirm)
+  removes the availability meeting and all its painted responses, then returns
+  to the meetings list — the public `/m/…` link stops working. Quick polls and
+  headcounts already had a delete; meetings now match. Handy for clearing out
+  test polls.
+
 ## Unreleased — Last sign-in + share-link view counts
 
 - **Team page (admins):** each organizer shows **Last sign-in** (relative time,

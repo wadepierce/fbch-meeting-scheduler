@@ -113,6 +113,32 @@ export default function MeetingDetailClient({
     }
   }
 
+  async function remove() {
+    if (
+      !confirm(
+        "Delete this meeting and all its responses? The share link will stop working."
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/app/meetings/${meeting.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        router.push("/app");
+        router.refresh();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      setErr(data.error || "Could not delete this meeting.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function finalize() {
     if (!slotKey) {
       setErr("Pick a time first");
@@ -190,6 +216,14 @@ export default function MeetingDetailClient({
         >
           Open poll →
         </Link>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void remove()}
+          className="ml-auto rounded-lg border border-line px-3 py-2 text-sm text-ink-muted transition hover:border-danger hover:text-danger disabled:opacity-50"
+        >
+          Delete
+        </button>
       </div>
 
       {(msg || err) && (
