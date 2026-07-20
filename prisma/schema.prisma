@@ -29,6 +29,9 @@ model Organizer {
   credentials  Credential[]
   invitesSent  Invite[]     @relation("InvitedBy")
   quickPolls   Poll[]       @relation("PollCreator")
+  /// Headcount roster: people this organizer texted / added
+  inviteesTexted RsvpInvitee[] @relation("InviteeTextedBy")
+  inviteesAdded  RsvpInvitee[] @relation("InviteeAddedBy")
 }
 
 /// A WebAuthn / passkey credential bound to an organizer.
@@ -167,15 +170,26 @@ model RsvpInvitee {
   token         String        @unique
   /// Organizer tapped Text (or marked texted)
   textedAt      DateTime?
+  /// Which organizer texted / marked them (for the roll board)
+  textedById    String?
+  textedBy      Organizer?    @relation("InviteeTextedBy", fields: [textedById], references: [id], onDelete: SetNull)
+  /// Snapshot of organizer name at text time (survives renames)
+  textedByName  String?
   firstOpenedAt DateTime?
   lastOpenedAt  DateTime?
   openCount     Int           @default(0)
+  /// Who added them to the list (manual or PCO import)
+  addedById     String?
+  addedBy       Organizer?    @relation("InviteeAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+  addedByName   String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   response      RsvpResponse?
 
   @@index([rsvpId])
   @@index([pcoPersonId])
+  @@index([textedById])
+  @@index([addedById])
 }
 
 model RsvpResponse {

@@ -4,53 +4,10 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchPcoListPeople, fetchPcoLists } from "@/lib/planning-center";
 import { newInviteeToken } from "@/lib/rsvp";
+import { serializeInvitee } from "@/lib/rsvp-invitee";
 
 interface Ctx {
   params: Promise<{ id: string }>;
-}
-
-function serializeInvitee(inv: {
-  id: string;
-  firstName: string;
-  lastName: string;
-  displayName: string;
-  phone: string | null;
-  token: string;
-  textedAt: Date | null;
-  firstOpenedAt: Date | null;
-  lastOpenedAt: Date | null;
-  openCount: number;
-  pcoPersonId: string | null;
-  createdAt: Date;
-  response: {
-    id: string;
-    answer: string;
-    count: number;
-    updatedAt: Date;
-  } | null;
-}) {
-  return {
-    id: inv.id,
-    firstName: inv.firstName,
-    lastName: inv.lastName,
-    displayName: inv.displayName,
-    phone: inv.phone,
-    token: inv.token,
-    textedAt: inv.textedAt?.toISOString() ?? null,
-    firstOpenedAt: inv.firstOpenedAt?.toISOString() ?? null,
-    lastOpenedAt: inv.lastOpenedAt?.toISOString() ?? null,
-    openCount: inv.openCount,
-    pcoPersonId: inv.pcoPersonId,
-    createdAt: inv.createdAt.toISOString(),
-    response: inv.response
-      ? {
-          id: inv.response.id,
-          answer: inv.response.answer,
-          count: inv.response.count,
-          updatedAt: inv.response.updatedAt.toISOString(),
-        }
-      : null,
-  };
 }
 
 /**
@@ -129,7 +86,6 @@ export async function POST(req: NextRequest, ctx: Ctx) {
           firstName: p.firstName,
           lastName: p.lastName,
           displayName: p.displayName,
-          // Only fill phone if we got one from PCO; don't wipe a manual fix
           ...(p.phone ? { phone: p.phone } : {}),
         },
       });
@@ -145,6 +101,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
           displayName: p.displayName,
           phone: p.phone,
           token: newInviteeToken(),
+          addedById: session.id,
+          addedByName: session.name,
         },
       });
       added += 1;

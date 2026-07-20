@@ -2,56 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { splitDisplayName } from "@/lib/rsvp";
+import { serializeInvitee } from "@/lib/rsvp-invitee";
 
 interface Ctx {
   params: Promise<{ id: string; inviteeId: string }>;
 }
 
-function serializeInvitee(inv: {
-  id: string;
-  firstName: string;
-  lastName: string;
-  displayName: string;
-  phone: string | null;
-  token: string;
-  textedAt: Date | null;
-  firstOpenedAt: Date | null;
-  lastOpenedAt: Date | null;
-  openCount: number;
-  pcoPersonId: string | null;
-  createdAt: Date;
-  response: {
-    id: string;
-    answer: string;
-    count: number;
-    updatedAt: Date;
-  } | null;
-}) {
-  return {
-    id: inv.id,
-    firstName: inv.firstName,
-    lastName: inv.lastName,
-    displayName: inv.displayName,
-    phone: inv.phone,
-    token: inv.token,
-    textedAt: inv.textedAt?.toISOString() ?? null,
-    firstOpenedAt: inv.firstOpenedAt?.toISOString() ?? null,
-    lastOpenedAt: inv.lastOpenedAt?.toISOString() ?? null,
-    openCount: inv.openCount,
-    pcoPersonId: inv.pcoPersonId,
-    createdAt: inv.createdAt.toISOString(),
-    response: inv.response
-      ? {
-          id: inv.response.id,
-          answer: inv.response.answer,
-          count: inv.response.count,
-          updatedAt: inv.response.updatedAt.toISOString(),
-        }
-      : null,
-  };
-}
-
-/** Update an invitee (name/phone) or mark texted. */
+/** Update an invitee (name/phone) or mark texted / not sent. */
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const session = await getSession();
   if (!session) {
@@ -84,13 +41,19 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     displayName?: string;
     phone?: string | null;
     textedAt?: Date | null;
+    textedById?: string | null;
+    textedByName?: string | null;
   } = {};
 
   if (body.markTexted === true) {
     data.textedAt = new Date();
+    data.textedById = session.id;
+    data.textedByName = session.name;
   }
   if (body.markTexted === false || body.clearTexted === true) {
     data.textedAt = null;
+    data.textedById = null;
+    data.textedByName = null;
   }
 
   if (typeof body.firstName === "string" || typeof body.name === "string") {
@@ -164,8 +127,6 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Detach response first so onDelete SetNull isn't the only path;
-  // response stays in headcount totals as a named reply.
   await prisma.rsvpResponse.updateMany({
     where: { inviteeId },
     data: { inviteeId: null },

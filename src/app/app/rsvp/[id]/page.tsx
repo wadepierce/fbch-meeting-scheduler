@@ -55,9 +55,13 @@ export default async function RsvpDetailPage({ params }: Props) {
     phone: inv.phone,
     token: inv.token,
     textedAt: inv.textedAt?.toISOString() ?? null,
+    textedById: inv.textedById ?? null,
+    textedByName: inv.textedByName ?? null,
     firstOpenedAt: inv.firstOpenedAt?.toISOString() ?? null,
     lastOpenedAt: inv.lastOpenedAt?.toISOString() ?? null,
     openCount: inv.openCount,
+    addedById: inv.addedById ?? null,
+    addedByName: inv.addedByName ?? null,
     response: inv.response
       ? {
           id: inv.response.id,
@@ -159,6 +163,7 @@ export default async function RsvpDetailPage({ params }: Props) {
             initialInvitees={invitees}
             closed={rsvp.status === "CLOSED"}
             pcoConfigured={isPcoConfigured()}
+            currentUserName={session.name}
           />
         </div>
 

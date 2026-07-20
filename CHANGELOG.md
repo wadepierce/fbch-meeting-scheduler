@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Attendance roll + who texted / added each person
+
+- Headcount **Attendance roll**: Coming, Maybe, Can't, and No reply yet with
+  names (and party size). Filters: Coming / Maybe / Can't / No reply / Waiting /
+  Need text.
+- When an organizer **Texts** or **Mark texted**, we store **who** did it
+  (`textedByName`). Manual add and PCO import store **added by**. Shown on each
+  card and on the no-reply column.
+- “Working as {name}” on the list so the team sees who is signed in for this
+  session.
+
 ## Unreleased — Custom domain meet.fbchenrietta.org
 
 - Production public origin is **https://meet.fbchenrietta.org**. Set `APP_URL` to

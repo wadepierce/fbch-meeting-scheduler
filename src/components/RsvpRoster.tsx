@@ -23,9 +23,13 @@ export type RosterInvitee = {
   phone: string | null;
   token: string;
   textedAt: string | null;
+  textedById?: string | null;
+  textedByName?: string | null;
   firstOpenedAt: string | null;
   lastOpenedAt: string | null;
   openCount: number;
+  addedById?: string | null;
+  addedByName?: string | null;
   response: {
     id: string;
     answer: string;
@@ -34,7 +38,15 @@ export type RosterInvitee = {
   } | null;
 };
 
-type FilterKey = "all" | "need_text" | "opened" | "replied" | "no_phone";
+type FilterKey =
+  | "all"
+  | "coming"
+  | "maybe"
+  | "cant"
+  | "no_reply"
+  | "need_text"
+  | "waiting"
+  | "no_phone";
 
 type PcoListOption = {
   id: string;
@@ -64,6 +76,8 @@ export default function RsvpRoster({
   initialInvitees,
   closed,
   pcoConfigured = false,
+  /** Signed-in organizer — shown so the team knows who is working this list */
+  currentUserName = null,
 }: {
   rsvpId: string;
   slug: string;
@@ -75,6 +89,7 @@ export default function RsvpRoster({
   initialInvitees: RosterInvitee[];
   closed: boolean;
   pcoConfigured?: boolean;
+  currentUserName?: string | null;
 }) {
   const router = useRouter();
   const [invitees, setInvitees] = useState(initialInvitees);
@@ -134,22 +149,42 @@ export default function RsvpRoster({
     let needText = 0;
     let textedNoOpen = 0;
     let opened = 0;
-    let replied = 0;
+    let coming = 0;
+    let maybe = 0;
+    let cant = 0;
+    let comingHeads = 0;
+    let maybeHeads = 0;
     let noPhone = 0;
     for (const inv of invitees) {
       const s = inviteeStatus(inv);
-      if (s === "YES" || s === "MAYBE" || s === "NO") replied += 1;
-      else if (s === "OPENED") opened += 1;
+      if (s === "YES") {
+        coming += 1;
+        comingHeads += inv.response?.count ?? 1;
+      } else if (s === "MAYBE") {
+        maybe += 1;
+        maybeHeads += inv.response?.count ?? 1;
+      } else if (s === "NO") {
+        cant += 1;
+      } else if (s === "OPENED") opened += 1;
       else if (s === "TEXTED") textedNoOpen += 1;
       else if (s === "NO_PHONE") noPhone += 1;
       else if (s === "READY") needText += 1;
     }
+    const replied = coming + maybe + cant;
+    const noReply = invitees.length - replied;
     return {
       total: invitees.length,
       needText,
       textedNoOpen,
       opened,
+      coming,
+      maybe,
+      cant,
+      comingHeads,
+      maybeHeads,
       replied,
+      noReply,
+      waiting: textedNoOpen + opened,
       noPhone,
     };
   }, [invitees]);
@@ -158,12 +193,18 @@ export default function RsvpRoster({
     return invitees.filter((inv) => {
       const s = inviteeStatus(inv);
       switch (filter) {
+        case "coming":
+          return s === "YES";
+        case "maybe":
+          return s === "MAYBE";
+        case "cant":
+          return s === "NO";
+        case "no_reply":
+          return s !== "YES" && s !== "MAYBE" && s !== "NO";
         case "need_text":
-          return s === "READY";
-        case "opened":
+          return s === "READY" || s === "NO_PHONE";
+        case "waiting":
           return s === "OPENED" || s === "TEXTED";
-        case "replied":
-          return s === "YES" || s === "MAYBE" || s === "NO";
         case "no_phone":
           return s === "NO_PHONE";
         default:
@@ -171,6 +212,27 @@ export default function RsvpRoster({
       }
     });
   }, [invitees, filter]);
+
+  const rollComing = useMemo(
+    () => invitees.filter((i) => inviteeStatus(i) === "YES"),
+    [invitees]
+  );
+  const rollMaybe = useMemo(
+    () => invitees.filter((i) => inviteeStatus(i) === "MAYBE"),
+    [invitees]
+  );
+  const rollCant = useMemo(
+    () => invitees.filter((i) => inviteeStatus(i) === "NO"),
+    [invitees]
+  );
+  const rollNoReply = useMemo(
+    () =>
+      invitees.filter((i) => {
+        const s = inviteeStatus(i);
+        return s !== "YES" && s !== "MAYBE" && s !== "NO";
+      }),
+    [invitees]
+  );
 
   function linkFor(inv: RosterInvitee) {
     return personalRsvpUrl(base, slug, inv.token);
@@ -198,9 +260,13 @@ export default function RsvpRoster({
       token: "preview",
       id: "preview",
       textedAt: null,
+      textedById: null,
+      textedByName: null,
       firstOpenedAt: null,
       lastOpenedAt: null,
       openCount: 0,
+      addedById: null,
+      addedByName: null,
       response: null,
     } satisfies RosterInvitee);
 
@@ -362,14 +428,12 @@ export default function RsvpRoster({
 
   const filters: { key: FilterKey; label: string; n?: number }[] = [
     { key: "all", label: "All", n: counts.total },
-    { key: "need_text", label: "Need text", n: counts.needText },
-    {
-      key: "opened",
-      label: "Waiting",
-      n: counts.opened + counts.textedNoOpen,
-    },
-    { key: "replied", label: "Replied", n: counts.replied },
-    { key: "no_phone", label: "No phone", n: counts.noPhone },
+    { key: "coming", label: "Coming", n: counts.coming },
+    { key: "maybe", label: "Maybe", n: counts.maybe },
+    { key: "cant", label: "Can't", n: counts.cant },
+    { key: "no_reply", label: "No reply", n: counts.noReply },
+    { key: "waiting", label: "Waiting", n: counts.waiting },
+    { key: "need_text", label: "Need text", n: counts.needText + counts.noPhone },
   ];
 
   return (
@@ -384,6 +448,14 @@ export default function RsvpRoster({
               gets a unique link — tap <strong>Text</strong> to open Messages
               with their number and message filled in.
             </p>
+            {currentUserName && (
+              <p className="mt-1.5 text-xs text-ink-subtle">
+                Working as{" "}
+                <span className="font-semibold text-ink">{currentUserName}</span>
+                {" — "}
+                texts and list adds are tagged with your name.
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -396,15 +468,66 @@ export default function RsvpRoster({
         {invitees.length > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="On list" value={counts.total} />
-            <Stat label="Need text" value={counts.needText} />
-            <Stat
-              label="Waiting"
-              value={counts.opened + counts.textedNoOpen}
-            />
-            <Stat label="Replied" value={counts.replied} accent />
+            <Stat label="Coming" value={counts.comingHeads} accent />
+            <Stat label="Replied" value={counts.replied} />
+            <Stat label="No reply" value={counts.noReply} />
           </div>
         )}
       </div>
+
+      {/* Attendance roll — names by response */}
+      {invitees.length > 0 && (
+        <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-ink">Attendance roll</h2>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Tap a name group filter below, or scan the lists. Party size is
+            included for Coming / Maybe.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <RollColumn
+              title="Coming"
+              count={counts.coming}
+              heads={counts.comingHeads}
+              accent
+              empty="No one has said yes yet."
+              people={rollComing}
+              onFilter={() => setFilter("coming")}
+            />
+            <RollColumn
+              title="Maybe"
+              count={counts.maybe}
+              heads={counts.maybeHeads}
+              empty="No maybes."
+              people={rollMaybe}
+              onFilter={() => setFilter("maybe")}
+            />
+            <RollColumn
+              title="Can't"
+              count={counts.cant}
+              empty="No one has said they can't."
+              people={rollCant}
+              onFilter={() => setFilter("cant")}
+            />
+            <RollColumn
+              title="No reply yet"
+              count={counts.noReply}
+              empty="Everyone has replied."
+              people={rollNoReply}
+              onFilter={() => setFilter("no_reply")}
+              subtitleFor={(inv) => {
+                const s = inviteeStatus(inv);
+                if (s === "OPENED") return "Opened · no answer";
+                if (s === "TEXTED")
+                  return inv.textedByName
+                    ? `Texted by ${inv.textedByName}`
+                    : "Texted · no open";
+                if (s === "NO_PHONE") return "No phone";
+                return "Not texted yet";
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <ListsTour
         open={listsTourOpen}
@@ -623,6 +746,12 @@ export default function RsvpRoster({
                             : inv.textedAt
                               ? ` · texted ${formatRelativeTime(inv.textedAt)}`
                               : ""}
+                          {inv.textedByName
+                            ? ` · by ${inv.textedByName}`
+                            : ""}
+                          {inv.addedByName
+                            ? ` · added by ${inv.addedByName}`
+                            : ""}
                         </p>
                       </div>
                       <span
@@ -719,6 +848,71 @@ function Stat({
       <p className="text-[10px] font-medium uppercase tracking-wide text-ink-subtle">
         {label}
       </p>
+    </div>
+  );
+}
+
+function RollColumn({
+  title,
+  count,
+  heads,
+  accent,
+  empty,
+  people,
+  onFilter,
+  subtitleFor,
+}: {
+  title: string;
+  count: number;
+  heads?: number;
+  accent?: boolean;
+  empty: string;
+  people: RosterInvitee[];
+  onFilter: () => void;
+  subtitleFor?: (inv: RosterInvitee) => string;
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-3 ${
+        accent ? "border-accent/40 bg-accent-soft/40" : "border-line bg-card-muted"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onFilter}
+        className="flex w-full items-baseline justify-between gap-2 text-left"
+      >
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">
+          {title}
+        </span>
+        <span
+          className={`text-sm font-bold ${accent ? "text-accent" : "text-ink"}`}
+        >
+          {count}
+          {typeof heads === "number" && heads !== count
+            ? ` · ${heads} people`
+            : ""}
+        </span>
+      </button>
+      {people.length === 0 ? (
+        <p className="mt-2 text-xs text-ink-subtle">{empty}</p>
+      ) : (
+        <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+          {people.map((p) => (
+            <li key={p.id} className="text-sm text-ink">
+              <span className="font-medium">{p.displayName}</span>
+              {p.response && p.response.count > 1 && (
+                <span className="text-xs text-ink-subtle"> ×{p.response.count}</span>
+              )}
+              {subtitleFor && (
+                <span className="block text-[11px] text-ink-subtle">
+                  {subtitleFor(p)}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
