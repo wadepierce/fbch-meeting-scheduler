@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Fix Railway deploy stuck on prisma db push
+
+- Production start failed after the roster schema change: `prisma db push`
+  refused to add the unique `RsvpResponse.inviteeId` constraint without
+  `--accept-data-loss` (safe here — new optional column, nulls allowed).
+  Start command / nixpacks / railway.json now pass that flag so deploys
+  can apply schema and boot.
+
 ## Unreleased — Fix Railway build (PCO types)
 
 - Next.js typecheck failed on deploy: `relationships.event.data.id` after

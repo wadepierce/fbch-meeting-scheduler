@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "start": "prisma db push && next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "start": "prisma db push --accept-data-loss && next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint",
-    "db:push": "prisma db push",
+    "db:push": "prisma db push --accept-data-loss",
     "db:studio": "prisma studio"
   },
   "dependencies": {
