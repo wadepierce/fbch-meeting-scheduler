@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Custom domain meet.fbchenrietta.org
+
+- Production public origin is **https://meet.fbchenrietta.org**. Set `APP_URL` to
+  that origin so invite/RSVP/list text links use the custom domain. Passkeys
+  bind to the address-bar host — use `meet.fbchenrietta.org` for sign-in, not
+  the Railway default URL.
+
 ## Unreleased — Lists tutorial for headcount text lists
 
 - **How to use lists** button on every headcount’s personal text list — 6-step

@@ -149,7 +149,7 @@ export default async function PrintMeetingPage({ params }: Props) {
             <div className="mt-10 border-t border-slate-200 pt-5 text-sm text-slate-500">
               Add it to your calendar or see details at{" "}
               <span className="font-medium text-slate-700">
-                meetings.fbchenrietta.org
+                meet.fbchenrietta.org
               </span>
               .
             </div>
