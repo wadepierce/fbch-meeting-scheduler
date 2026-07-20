@@ -127,10 +127,8 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await prisma.rsvpResponse.updateMany({
-    where: { inviteeId },
-    data: { inviteeId: null },
-  });
+  // Drop their RSVP with them so headcount totals stay in sync with the roll.
+  await prisma.rsvpResponse.deleteMany({ where: { inviteeId } });
   await prisma.rsvpInvitee.delete({ where: { id: inviteeId } });
 
   return NextResponse.json({ ok: true });

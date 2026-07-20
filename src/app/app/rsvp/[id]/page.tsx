@@ -5,11 +5,12 @@ import { prisma } from "@/lib/db";
 import { getBaseUrl } from "@/lib/base-url";
 import { isPcoConfigured } from "@/lib/planning-center";
 import { tallyRsvp, formatEventWhen, rsvpShareMessage } from "@/lib/rsvp";
-import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 import ShareActions from "@/components/ShareActions";
 import RsvpStatusButtons from "@/components/RsvpStatusButtons";
 import RsvpRoster, { type RosterInvitee } from "@/components/RsvpRoster";
+import OtherReplies from "@/components/OtherReplies";
+import HeadcountTotals from "@/components/HeadcountTotals";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -109,29 +110,15 @@ export default async function RsvpDetailPage({ params }: Props) {
           </span>
         </div>
 
-        {/* Headcount summary */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="rounded-2xl border border-accent/40 bg-accent-soft p-4 text-center">
-            <p className="text-3xl font-bold text-accent">{tally.yes}</p>
-            <p className="mt-1 text-xs font-medium text-ink-muted">coming</p>
-          </div>
-          <div className="rounded-2xl border border-line bg-card p-4 text-center">
-            <p className="text-3xl font-bold text-ink">{tally.maybe}</p>
-            <p className="mt-1 text-xs font-medium text-ink-muted">maybe</p>
-          </div>
-          <div className="rounded-2xl border border-line bg-card p-4 text-center">
-            <p className="text-3xl font-bold text-ink-subtle">{tally.no}</p>
-            <p className="mt-1 text-xs font-medium text-ink-muted">can&apos;t</p>
-          </div>
-        </div>
-        <p className="mt-2 text-center text-xs text-ink-subtle">
-          Plan for <span className="font-semibold text-ink">{tally.yes}</span>
-          {tally.maybe > 0
-            ? ` (up to ${tally.yes + tally.maybe} with maybes)`
-            : ""}{" "}
-          · {tally.replies} repl{tally.replies === 1 ? "y" : "ies"} ·{" "}
-          {formatViews(rsvp.viewCount)}
-        </p>
+        <HeadcountTotals
+          rsvpId={rsvp.id}
+          tally={tally}
+          viewCount={rsvp.viewCount}
+          orphanCount={orphanResponses.length}
+          rosterComing={invitees
+            .filter((i) => i.response?.answer === "YES")
+            .reduce((n, i) => n + (i.response?.count ?? 0), 0)}
+        />
 
         {/* Shared link (group text / posts) */}
         <div className="mt-6 rounded-2xl border border-line bg-card p-4 shadow-sm">
@@ -167,51 +154,15 @@ export default async function RsvpDetailPage({ params }: Props) {
           />
         </div>
 
-        {/* Shared-link replies not on the roster */}
-        {orphanResponses.length > 0 && (
-          <div className="mt-5 rounded-2xl border border-line bg-card p-4 shadow-sm">
-            <h2 className="text-sm font-semibold text-ink">
-              Other replies ({orphanResponses.length})
-            </h2>
-            <p className="mt-1 text-xs text-ink-muted">
-              From the shared link (not on your personal list).
-            </p>
-            <ul className="mt-2 divide-y divide-line">
-              {orphanResponses.map((r) => (
-                <li
-                  key={r.id}
-                  className="flex items-center justify-between gap-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-ink">
-                      {r.displayName}
-                      {r.count > 1 && (
-                        <span className="ml-1.5 text-xs font-normal text-ink-subtle">
-                          ×{r.count}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                      r.answer === "YES"
-                        ? "bg-accent-soft text-accent"
-                        : r.answer === "MAYBE"
-                          ? "bg-brand-soft text-brand-text"
-                          : "bg-card-muted text-ink-subtle ring-1 ring-line"
-                    }`}
-                  >
-                    {r.answer === "YES"
-                      ? "Coming"
-                      : r.answer === "MAYBE"
-                        ? "Maybe"
-                        : "Can't"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <OtherReplies
+          rsvpId={rsvp.id}
+          replies={orphanResponses.map((r) => ({
+            id: r.id,
+            displayName: r.displayName,
+            answer: r.answer,
+            count: r.count,
+          }))}
+        />
 
         <div className="mt-5">
           <RsvpStatusButtons id={rsvp.id} status={rsvp.status} />

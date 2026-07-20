@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Match headcount totals to attendance roll
+
+- Top Coming/Maybe/Can't still included shared-link / detached test replies
+  after people were removed from the list. **Match attendance roll** clears
+  those orphans; each “Other replies” row can be removed; removing a roster
+  person now deletes their RSVP too so totals stay in sync.
+
 ## Unreleased — Attendance roll + who texted / added each person
 
 - Headcount **Attendance roll**: Coming, Maybe, Can't, and No reply yet with
