@@ -262,14 +262,14 @@ export default function RsvpRoster({
     }
   }
 
-  async function markTexted(inv: RosterInvitee) {
+  async function setTexted(inv: RosterInvitee, texted: boolean) {
     try {
       const res = await fetch(
         `/api/app/rsvps/${rsvpId}/invitees/${inv.id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ markTexted: true }),
+          body: JSON.stringify({ markTexted: texted }),
         }
       );
       const data = await res.json();
@@ -280,6 +280,14 @@ export default function RsvpRoster({
     } catch {
       /* ignore — sms still opened */
     }
+  }
+
+  async function markTexted(inv: RosterInvitee) {
+    await setTexted(inv, true);
+  }
+
+  async function markNotSent(inv: RosterInvitee) {
+    await setTexted(inv, false);
   }
 
   async function removePerson(inv: RosterInvitee) {
@@ -640,6 +648,16 @@ export default function RsvpRoster({
                           className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-card-muted"
                         >
                           Mark texted
+                        </button>
+                      )}
+                      {inv.textedAt && !closed && (
+                        <button
+                          type="button"
+                          onClick={() => void markNotSent(inv)}
+                          title="Clear texted status if you didn’t actually send"
+                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink-muted transition hover:bg-card-muted hover:text-ink"
+                        >
+                          Not sent
                         </button>
                       )}
                       {!closed && (

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Undo accidental “texted” on roster
+
+- Each person card shows a small **Not sent** control after they’ve been
+  marked texted (including when **Text** auto-marks). Clears `textedAt` so
+  funnel counts / filters go back to Ready without removing the person.
+
 ## Unreleased — Fix Railway deploy stuck on prisma db push
 
 - Production start failed after the roster schema change: `prisma db push`
