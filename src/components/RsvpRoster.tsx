@@ -13,6 +13,7 @@ import {
   type InviteeStatus,
 } from "@/lib/rsvp";
 import { formatRelativeTime } from "@/lib/format";
+import ListsTour from "@/components/ListsTour";
 
 export type RosterInvitee = {
   id: string;
@@ -98,6 +99,7 @@ export default function RsvpRoster({
   const [filter, setFilter] = useState<FilterKey>("all");
   const [err, setErr] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [listsTourOpen, setListsTourOpen] = useState(false);
 
   const base = publicBase.replace(/\/$/, "");
 
@@ -374,12 +376,23 @@ export default function RsvpRoster({
     <div className="space-y-5">
       {/* Funnel summary */}
       <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-ink">Personal text list</h2>
-        <p className="mt-1 text-xs text-ink-muted">
-          Import a Planning Center list (or add people by hand). Each person gets
-          a unique link — tap <strong>Text</strong> to open Messages with their
-          number and message filled in.
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-ink">Personal text list</h2>
+            <p className="mt-1 text-xs text-ink-muted">
+              Import a Planning Center list (or add people by hand). Each person
+              gets a unique link — tap <strong>Text</strong> to open Messages
+              with their number and message filled in.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setListsTourOpen(true)}
+            className="shrink-0 rounded-lg border border-brand/30 bg-brand-soft px-2.5 py-1.5 text-xs font-semibold text-brand-text transition hover:border-brand/50"
+          >
+            How to use lists
+          </button>
+        </div>
         {invitees.length > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="On list" value={counts.total} />
@@ -392,6 +405,12 @@ export default function RsvpRoster({
           </div>
         )}
       </div>
+
+      <ListsTour
+        open={listsTourOpen}
+        onClose={() => setListsTourOpen(false)}
+        autoOffer
+      />
 
       {/* Planning Center list import */}
       {!closed && pcoConfigured && (

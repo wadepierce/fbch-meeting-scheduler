@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Lists tutorial for headcount text lists
+
+- **How to use lists** button on every headcount’s personal text list — 6-step
+  walkthrough (shared vs personal links, PCO import, message tokens, texting
+  one-by-one, statuses / Not sent, party size updates). Auto-offers once per
+  browser the first time someone opens a headcount roster.
+- Welcome tour adds a **Lists** step so new organizers see the feature too.
+
 ## Unreleased — Personal RSVP: prefill name + never double-count party size
 
 - Personal links always prefill (and lock) the roster name from first/last/display.

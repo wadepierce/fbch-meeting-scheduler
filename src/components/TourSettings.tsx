@@ -62,7 +62,8 @@ export default function TourSettings() {
             Welcome tour
           </span>
           <span className="block text-xs text-ink-subtle">
-            The quick walkthrough shown on your first sign-in
+            App overview on first sign-in. For text lists, open a headcount and
+            tap &quot;How to use lists.&quot;
           </span>
         </span>
         <button

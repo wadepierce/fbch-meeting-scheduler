@@ -58,12 +58,21 @@ const STEPS: Step[] = [
   },
   {
     title: "Headcounts — text it out",
-    body: "Turn any event into a tap-to-RSVP link. Text it from your phone; people answer I'll be there / Maybe / Can't and how many they're bringing. You get a live count.",
+    body: "Turn any event into a tap-to-RSVP link. Use the shared link for a group text, or a personal text list so each person gets their own link. They answer I'll be there / Maybe / Can't and how many they're bringing.",
     icon: (
       <Icon>
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
         <circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </Icon>
+    ),
+  },
+  {
+    title: "Lists — text people one by one",
+    body: "On a headcount, import a Planning Center People list (or add names). Edit one message with %first% and %link%, then Text each person. Status shows Ready → Texted → Opened → replied. Don't forward someone's personal message — that link is only for them. Open How to use lists anytime on the headcount page.",
+    icon: (
+      <Icon>
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
       </Icon>
     ),
   },
