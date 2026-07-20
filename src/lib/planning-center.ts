@@ -188,7 +188,8 @@ export async function fetchUpcomingPcoEvents(
   for (const inst of body.data ?? []) {
     if (inst.type !== "EventInstance") continue;
     const a = inst.attributes ?? {};
-    const eventId = inst.relationships?.event?.data?.id ?? "";
+    // relationship data may be a single object or an array (JSON:API)
+    const eventId = relIds(inst.relationships?.event)[0] ?? "";
     const ev = eventId ? events.get(eventId) : undefined;
     const evAttr = ev?.attributes ?? {};
 

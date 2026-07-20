@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Fix Railway build (PCO types)
+
+- Next.js typecheck failed on deploy: `relationships.event.data.id` after
+  widening JSON:API relationship types for People list import. Calendar event
+  fetch now uses the shared `relIds()` helper.
+
 ## Unreleased — Import Planning Center People lists into headcount roster
 
 - On a headcount detail page: **Import from Planning Center** loads your People
