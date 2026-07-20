@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Import Planning Center People lists into headcount roster
+
+- On a headcount detail page: **Import from Planning Center** loads your People
+  lists, imports names + mobile numbers, and creates a **personal RSVP link**
+  per person. Tap **Text** on each card to open Messages with a customized
+  message and that person’s unique link. Re-import refreshes names/phones
+  without wiping texted/open/reply status. Requires the existing PCO PAT to
+  have People access (not Calendar-only).
+
 ## Unreleased — Delete only this app’s polls/headcounts (never PCO)
 
 - Confirm copy for **Delete poll** / **Delete headcount** states clearly that

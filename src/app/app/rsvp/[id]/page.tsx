@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getBaseUrl } from "@/lib/base-url";
+import { isPcoConfigured } from "@/lib/planning-center";
 import { tallyRsvp, formatEventWhen, rsvpShareMessage } from "@/lib/rsvp";
 import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
@@ -157,6 +158,7 @@ export default async function RsvpDetailPage({ params }: Props) {
             initialTemplate={rsvp.messageTemplate}
             initialInvitees={invitees}
             closed={rsvp.status === "CLOSED"}
+            pcoConfigured={isPcoConfigured()}
           />
         </div>
 

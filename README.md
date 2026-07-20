@@ -10,7 +10,7 @@ Phone-friendly when2meet-style availability polls for **First Baptist Church Hen
 - Lock a time → everyone **downloads .ics** for iPhone/Android calendar
 - **Dark & light** themes with strong contrast (follows the system, with a manual toggle)
 - Admins see **last sign-in** per team member; organizers see **view counts** on shared poll / meeting / headcount links
-- Headcounts support a **personal text list**: unique link per person, customizable message (`%first%`, `%link%`, …), click-to-text, open + reply tracking on each card
+- Headcounts support a **personal text list**: import a **Planning Center People list**, unique link per person, customizable message (`%first%`, `%link%`, …), click-to-text, open + reply tracking on each card
 
 Planned domain: `meetings.fbchenrietta.org`
 Railway project: **Wade's Custom Apps**
@@ -58,7 +58,7 @@ then add a passkey from the **Passkeys** page.
 | `SMTP_PORT` | optional | Defaults to `587` (`465` = implicit TLS). |
 | `SMTP_SECURE` | optional | `true` to force TLS (usually only for port 465). |
 | `EMAIL_FROM` | optional | From address, e.g. `FBCH Scheduler <meetings@fbchenrietta.org>`. Defaults to `SMTP_USER`. |
-| `PCO_APP_ID` `PCO_SECRET` | optional | Planning Center Personal Access Token — enables the Events page pulling from the church calendar. |
+| `PCO_APP_ID` `PCO_SECRET` | optional | Planning Center Personal Access Token — Events calendar + **People lists** for headcount roster import. Token needs People access (not Calendar-only). |
 
 ## Sending invite emails (free, via Resend)
 

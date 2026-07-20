@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DEFAULT_RSVP_MESSAGE_TEMPLATE,
@@ -35,6 +35,13 @@ export type RosterInvitee = {
 
 type FilterKey = "all" | "need_text" | "opened" | "replied" | "no_phone";
 
+type PcoListOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  totalPeople: number | null;
+};
+
 const STATUS_PILL: Record<InviteeStatus, string> = {
   NO_PHONE: "bg-card-muted text-ink-subtle ring-1 ring-line",
   READY: "bg-brand-soft text-brand-text",
@@ -55,6 +62,7 @@ export default function RsvpRoster({
   initialTemplate,
   initialInvitees,
   closed,
+  pcoConfigured = false,
 }: {
   rsvpId: string;
   slug: string;
@@ -65,6 +73,7 @@ export default function RsvpRoster({
   initialTemplate: string | null;
   initialInvitees: RosterInvitee[];
   closed: boolean;
+  pcoConfigured?: boolean;
 }) {
   const router = useRouter();
   const [invitees, setInvitees] = useState(initialInvitees);
@@ -80,11 +89,44 @@ export default function RsvpRoster({
   const [addBusy, setAddBusy] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
+  const [pcoLists, setPcoLists] = useState<PcoListOption[] | null>(null);
+  const [pcoListId, setPcoListId] = useState("");
+  const [pcoListsError, setPcoListsError] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+
   const [filter, setFilter] = useState<FilterKey>("all");
   const [err, setErr] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const base = publicBase.replace(/\/$/, "");
+
+  useEffect(() => {
+    if (!pcoConfigured || closed) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/app/pco/lists");
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setPcoListsError(data.error || "Could not load Planning Center lists");
+          setPcoLists([]);
+          return;
+        }
+        setPcoLists(data.lists ?? []);
+        setPcoListsError(null);
+      } catch {
+        if (!cancelled) {
+          setPcoListsError("Network error loading lists");
+          setPcoLists([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pcoConfigured, closed]);
 
   const counts = useMemo(() => {
     let needText = 0;
@@ -265,6 +307,46 @@ export default function RsvpRoster({
     }
   }
 
+  async function importPcoList() {
+    if (!pcoListId) return;
+    setImportBusy(true);
+    setImportMsg(null);
+    setErr(null);
+    try {
+      const selected = pcoLists?.find((l) => l.id === pcoListId);
+      const res = await fetch(`/api/app/rsvps/${rsvpId}/invitees/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listId: pcoListId,
+          listName: selected?.name ?? null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data.error || "Import failed");
+        return;
+      }
+      setInvitees(data.invitees as RosterInvitee[]);
+      const parts = [
+        data.added ? `${data.added} added` : null,
+        data.updated ? `${data.updated} updated` : null,
+      ].filter(Boolean);
+      setImportMsg(
+        parts.length
+          ? `Imported “${data.listName || "list"}”: ${parts.join(", ")}.`
+          : data.imported === 0
+            ? "That list has no people yet."
+            : "List already up to date."
+      );
+      router.refresh();
+    } catch {
+      setErr("Network error importing list");
+    } finally {
+      setImportBusy(false);
+    }
+  }
+
   const input =
     "w-full rounded-xl border border-line bg-card-muted px-3 py-2.5 text-sm text-ink placeholder:text-ink-subtle";
 
@@ -286,8 +368,9 @@ export default function RsvpRoster({
       <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-ink">Personal text list</h2>
         <p className="mt-1 text-xs text-ink-muted">
-          Add people, text each a unique link, and see who opened and replied.
-          Planning Center list import comes next.
+          Import a Planning Center list (or add people by hand). Each person gets
+          a unique link — tap <strong>Text</strong> to open Messages with their
+          number and message filled in.
         </p>
         {invitees.length > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -301,6 +384,74 @@ export default function RsvpRoster({
           </div>
         )}
       </div>
+
+      {/* Planning Center list import */}
+      {!closed && pcoConfigured && (
+        <div className="rounded-2xl border border-brand/30 bg-brand-soft p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-ink">
+            Import from Planning Center
+          </h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            Choose a People list. We load names + mobile numbers and create a
+            personal RSVP link for each person. Re-import updates names/phones
+            without wiping who you already texted or who replied.
+          </p>
+          {pcoLists === null ? (
+            <p className="mt-3 text-xs text-ink-subtle">Loading lists…</p>
+          ) : pcoListsError ? (
+            <p className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-xs text-danger">
+              {pcoListsError}
+            </p>
+          ) : pcoLists.length === 0 ? (
+            <p className="mt-3 text-xs text-ink-muted">
+              No People lists found. Create a list in Planning Center People,
+              then refresh this page.
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select
+                className={input}
+                value={pcoListId}
+                onChange={(e) => setPcoListId(e.target.value)}
+                disabled={importBusy}
+              >
+                <option value="">Select a list…</option>
+                {pcoLists.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                    {typeof l.totalPeople === "number"
+                      ? ` (${l.totalPeople})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={!pcoListId || importBusy}
+                onClick={() => void importPcoList()}
+                className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
+              >
+                {importBusy ? "Importing…" : "Import list"}
+              </button>
+            </div>
+          )}
+          {importMsg && (
+            <p className="mt-2 text-xs font-medium text-accent">{importMsg}</p>
+          )}
+        </div>
+      )}
+
+      {!closed && !pcoConfigured && (
+        <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-ink">
+            Planning Center lists
+          </h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            Connect Planning Center (PCO_APP_ID + PCO_SECRET with People access)
+            to import a list here. You can still add people manually below.
+          </p>
+        </div>
+      )}
 
       {/* Message template */}
       <div className="rounded-2xl border border-line bg-card p-4 shadow-sm">

@@ -151,7 +151,7 @@ model Rsvp {
 }
 
 /// Someone the organizer is texting a personal headcount link to.
-/// Phase 3 will fill these from Planning Center lists; v1 is manual add.
+/// Filled manually or imported from a Planning Center People list.
 model RsvpInvitee {
   id            String        @id @default(cuid())
   rsvpId        String
