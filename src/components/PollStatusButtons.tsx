@@ -28,7 +28,13 @@ export default function PollStatusButtons({
   }
 
   async function remove() {
-    if (!confirm("Delete this poll and all its answers? The link will stop working.")) {
+    if (
+      !confirm(
+        "Delete this poll from this app?\n\n" +
+          "Only this app’s poll and answers are removed. " +
+          "Nothing in Planning Center is changed. The share link will stop working."
+      )
+    ) {
       return;
     }
     setBusy(true);
@@ -69,8 +75,9 @@ export default function PollStatusButtons({
         disabled={busy}
         onClick={() => void remove()}
         className="rounded-lg border border-line px-3 py-2 text-sm text-ink-muted transition hover:border-danger hover:text-danger disabled:opacity-50"
+        title="Remove this poll from this app only"
       >
-        Delete
+        Delete poll
       </button>
     </div>
   );

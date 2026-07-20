@@ -30,7 +30,9 @@ export default function RsvpStatusButtons({
   async function remove() {
     if (
       !confirm(
-        "Delete this headcount and all its responses? The link will stop working."
+        "Delete this headcount page from this app?\n\n" +
+          "Only this RSVP link, roster, and replies are removed. " +
+          "The event stays on the Planning Center calendar unchanged."
       )
     ) {
       return;
@@ -73,8 +75,9 @@ export default function RsvpStatusButtons({
         disabled={busy}
         onClick={() => void remove()}
         className="rounded-lg border border-line px-3 py-2 text-sm text-ink-muted transition hover:border-danger hover:text-danger disabled:opacity-50"
+        title="Removes this headcount from this app only — not the Planning Center event"
       >
-        Delete
+        Delete headcount
       </button>
     </div>
   );

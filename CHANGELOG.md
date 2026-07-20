@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Delete only this app’s polls/headcounts (never PCO)
+
+- Confirm copy for **Delete poll** / **Delete headcount** states clearly that
+  only data in this scheduler is removed. Planning Center calendar events are
+  never deleted (the app never calls PCO delete APIs).
+
 ## Unreleased — Personal headcount roster (phases 1–2)
 
 - **Personal invite links** per person on a headcount: `/r/{slug}/t/{token}`.

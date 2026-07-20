@@ -116,7 +116,9 @@ export default function MeetingDetailClient({
   async function remove() {
     if (
       !confirm(
-        "Delete this meeting and all its responses? The share link will stop working."
+        "Delete this availability poll from this app?\n\n" +
+          "Only this scheduler copy is removed (including responses). " +
+          "Nothing in Planning Center is changed. The share link will stop working."
       )
     ) {
       return;
@@ -133,7 +135,7 @@ export default function MeetingDetailClient({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      setErr(data.error || "Could not delete this meeting.");
+      setErr(data.error || "Could not delete this poll.");
     } finally {
       setBusy(false);
     }
@@ -221,8 +223,9 @@ export default function MeetingDetailClient({
           disabled={busy}
           onClick={() => void remove()}
           className="ml-auto rounded-lg border border-line px-3 py-2 text-sm text-ink-muted transition hover:border-danger hover:text-danger disabled:opacity-50"
+          title="Remove this poll from this app only"
         >
-          Delete
+          Delete poll
         </button>
       </div>
 
