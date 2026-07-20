@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Answer = "YES" | "MAYBE" | "NO";
@@ -25,18 +25,41 @@ export default function RsvpClient({
   nameLocked?: boolean;
 }) {
   const router = useRouter();
-  const [name, setName] = useState(initial?.displayName ?? "");
+  const prefill = (initial?.displayName ?? "").trim();
+  const [name, setName] = useState(prefill);
   const [answer, setAnswer] = useState<Answer | null>(initial?.answer ?? null);
-  const [count, setCount] = useState(initial?.count ?? 1);
+  const [count, setCount] = useState(
+    Math.max(1, Math.min(25, initial?.count ?? 1))
+  );
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(Boolean(initial?.answer));
   const [error, setError] = useState<string | null>(null);
 
+  // Keep form in sync when the server re-renders with known invitee/response data
+  // (e.g. after router.refresh() on a personal link).
+  useEffect(() => {
+    const nextName = (initial?.displayName ?? "").trim();
+    if (nextName) setName(nextName);
+    if (initial?.answer) {
+      setAnswer(initial.answer);
+      setSaved(true);
+    }
+    if (typeof initial?.count === "number" && initial.count >= 1) {
+      setCount(Math.max(1, Math.min(25, initial.count)));
+    }
+  }, [initial?.displayName, initial?.answer, initial?.count]);
+
+  const effectiveName = name.trim() || prefill;
+
   async function save() {
-    if (!name.trim() || !answer) return;
+    if (!effectiveName || !answer) return;
     setBusy(true);
     setError(null);
     try {
+      const party =
+        answer === "YES" || answer === "MAYBE"
+          ? Math.max(1, Math.min(25, Math.floor(count) || 1))
+          : 1;
       const url = inviteToken
         ? `/api/r/${slug}/t/${inviteToken}/response`
         : `/api/r/${slug}/response`;
@@ -44,15 +67,23 @@ export default function RsvpClient({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          displayName: name.trim(),
+          displayName: effectiveName,
           answer,
-          count: answer === "YES" || answer === "MAYBE" ? count : 1,
+          count: party,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Could not save");
         return;
+      }
+      // Trust the server as source of truth (replace, never stack).
+      if (data.response?.displayName) setName(data.response.displayName);
+      if (typeof data.response?.count === "number") {
+        setCount(data.response.count);
+      }
+      if (data.response?.answer) {
+        setAnswer(data.response.answer as Answer);
       }
       setSaved(true);
       router.refresh();
@@ -95,13 +126,14 @@ export default function RsvpClient({
               <path d="M20 6 9 17l-5-5" />
             </svg>
             <h2 className="text-lg font-semibold text-ink">
-              Thanks, {name.trim()}!
+              Thanks, {effectiveName}!
             </h2>
           </div>
           <p className="mt-2 text-sm text-ink-muted">
             Your answer is saved
             {answer === "YES" && count > 1 ? ` for ${count} people` : ""}. Plans
-            change? Come back to this link and update it.
+            change? Come back to this link and update it — changing the number
+            replaces your previous answer (it does not add on top).
           </p>
           <button
             type="button"
@@ -118,7 +150,7 @@ export default function RsvpClient({
           </label>
           {nameLocked ? (
             <p className="mt-1 rounded-xl border border-line bg-card-muted px-3 py-3 text-base font-medium text-ink">
-              {name}
+              {effectiveName || "…"}
             </p>
           ) : (
             <input
@@ -180,6 +212,9 @@ export default function RsvpClient({
                   +
                 </button>
               </div>
+              <p className="mt-1.5 text-xs text-ink-subtle">
+                This is your total party size — updating replaces the old number.
+              </p>
             </div>
           )}
 
@@ -191,7 +226,7 @@ export default function RsvpClient({
 
           <button
             type="button"
-            disabled={busy || !name.trim() || !answer}
+            disabled={busy || !effectiveName || !answer}
             onClick={() => void save()}
             className="mt-5 w-full rounded-xl bg-brand py-3.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
           >

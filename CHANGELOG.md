@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Personal RSVP: prefill name + never double-count party size
+
+- Personal links always prefill (and lock) the roster name from first/last/display.
+- Re-submitting (e.g. party of 3 → 4) **replaces** the same response row; it no
+  longer stacks a second reply that made totals look like 7. Same-name replies
+  from the shared link are merged into the personal row when they open their
+  unique link again.
+
 ## Unreleased — Undo accidental “texted” on roster
 
 - Each person card shows a small **Not sent** control after they’ve been

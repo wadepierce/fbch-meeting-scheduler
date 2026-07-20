@@ -68,7 +68,19 @@ export default async function PersonalRsvpPage({ params }: Props) {
 
   const tally = tallyRsvp(rsvp.responses);
   const when = formatEventWhen(rsvp.startsAt, rsvp.timezone, rsvp.endsAt);
-  const mine = invitee.response;
+  // Prefer the linked response; fall back if relation was missing but guestToken exists.
+  const mine =
+    invitee.response ??
+    rsvp.responses.find((r) => r.guestToken === `inv:${invitee.id}`) ??
+    null;
+
+  const rosterName =
+    invitee.displayName?.trim() ||
+    [invitee.firstName, invitee.lastName].filter(Boolean).join(" ").trim() ||
+    invitee.firstName?.trim() ||
+    "Friend";
+  const prefillName = (mine?.displayName?.trim() || rosterName).trim();
+  const greet = invitee.firstName?.trim() || prefillName.split(/\s+/)[0] || prefillName;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col px-4 py-6">
@@ -79,7 +91,7 @@ export default async function PersonalRsvpPage({ params }: Props) {
 
       <div className="mt-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-text">
-          Hi {invitee.firstName || invitee.displayName}
+          Hi {greet}
         </p>
         <h1 className="mt-1 text-3xl font-bold text-ink">{rsvp.title}</h1>
         <p className="mt-2 text-sm font-medium text-ink">{when}</p>
@@ -95,12 +107,13 @@ export default async function PersonalRsvpPage({ params }: Props) {
 
       <div className="mt-6">
         <RsvpClient
+          key={`personal-${invitee.token}-${prefillName}`}
           slug={rsvp.slug}
           closed={rsvp.status === "CLOSED"}
           inviteToken={invitee.token}
           nameLocked
           initial={{
-            displayName: mine?.displayName ?? invitee.displayName,
+            displayName: prefillName,
             answer: mine?.answer ?? null,
             count: mine?.count ?? 1,
           }}

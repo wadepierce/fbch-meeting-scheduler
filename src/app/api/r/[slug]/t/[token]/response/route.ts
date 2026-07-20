@@ -12,13 +12,18 @@ interface Ctx {
 
 const ANSWERS = new Set(["YES", "MAYBE", "NO"]);
 
-/** Save (or update) the RSVP for a personal invite link. */
+/**
+ * Save (or update) the RSVP for a personal invite link.
+ *
+ * Always replaces a single response for this invitee — never stacks a second
+ * row (which would double-count party size in the headcount totals).
+ */
 export async function PUT(req: NextRequest, ctx: Ctx) {
   const { slug, token } = await ctx.params;
 
   const invitee = await prisma.rsvpInvitee.findFirst({
     where: { token, rsvp: { slug } },
-    include: { rsvp: true, response: { select: { id: true } } },
+    include: { rsvp: true },
   });
   if (!invitee) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -37,10 +42,15 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // Personal links keep the roster name (guest can still tweak if we allow;
-  // default to locked name from invitee).
+  const rosterName =
+    invitee.displayName?.trim() ||
+    [invitee.firstName, invitee.lastName].filter(Boolean).join(" ").trim() ||
+    invitee.firstName?.trim() ||
+    "";
+
+  // Personal links always use the roster name (prefilled / locked on the page).
   const displayName =
-    String(body.displayName ?? "").trim() || invitee.displayName;
+    String(body.displayName ?? "").trim() || rosterName;
   if (!displayName || displayName.length > 80) {
     return NextResponse.json(
       { error: "Name is required (max 80 characters)" },
@@ -56,7 +66,9 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
     );
   }
   let count = Number(body.count ?? 1);
-  if (!Number.isInteger(count) || count < 1) count = 1;
+  if (!Number.isFinite(count)) count = 1;
+  count = Math.floor(count);
+  if (count < 1) count = 1;
   if (count > 25) count = 25;
   if (answer === "NO") count = 1;
 
@@ -70,11 +82,34 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
     guestToken,
   };
 
-  const wasNew = !invitee.response;
+  // Prefer the invitee-linked row, then the stable personal guestToken.
+  // Also reclaim a same-name shared-link reply so we don't stack 3+4=7.
+  const candidates = await prisma.rsvpResponse.findMany({
+    where: {
+      rsvpId: invitee.rsvpId,
+      OR: [
+        { inviteeId: invitee.id },
+        { guestToken },
+        {
+          inviteeId: null,
+          displayName: { equals: displayName, mode: "insensitive" },
+        },
+      ],
+    },
+    orderBy: { updatedAt: "desc" },
+  });
 
-  const response = invitee.response
+  const primary =
+    candidates.find((c) => c.inviteeId === invitee.id) ||
+    candidates.find((c) => c.guestToken === guestToken) ||
+    candidates[0] ||
+    null;
+
+  const wasNew = !primary;
+
+  const response = primary
     ? await prisma.rsvpResponse.update({
-        where: { id: invitee.response.id },
+        where: { id: primary.id },
         data,
       })
     : await prisma.rsvpResponse.create({
@@ -84,6 +119,14 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
           ...data,
         },
       });
+
+  // Drop any leftover duplicates for this person (old shared + personal rows).
+  const extras = candidates.filter((c) => c.id !== response.id);
+  if (extras.length > 0) {
+    await prisma.rsvpResponse.deleteMany({
+      where: { id: { in: extras.map((c) => c.id) } },
+    });
+  }
 
   if (wasNew) {
     const baseUrl = await getBaseUrl();
