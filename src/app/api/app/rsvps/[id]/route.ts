@@ -6,7 +6,7 @@ interface Ctx {
   params: Promise<{ id: string }>;
 }
 
-/** Open/close a headcount. */
+/** Open/close a headcount and/or update the per-person message template. */
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const session = await getSession();
   if (!session) {
@@ -21,9 +21,39 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const status = body.status === "CLOSED" ? "CLOSED" : "OPEN";
+  const data: { status?: "OPEN" | "CLOSED"; messageTemplate?: string | null } =
+    {};
+
+  if (body.status === "CLOSED" || body.status === "OPEN") {
+    data.status = body.status;
+  }
+  if ("messageTemplate" in body) {
+    const raw = body.messageTemplate;
+    if (raw === null || raw === "") {
+      data.messageTemplate = null;
+    } else if (typeof raw === "string") {
+      const t = raw.trim();
+      if (t.length > 2000) {
+        return NextResponse.json(
+          { error: "Message template is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
+      data.messageTemplate = t || null;
+    } else {
+      return NextResponse.json(
+        { error: "messageTemplate must be a string" },
+        { status: 400 }
+      );
+    }
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
   try {
-    const rsvp = await prisma.rsvp.update({ where: { id }, data: { status } });
+    const rsvp = await prisma.rsvp.update({ where: { id }, data });
     return NextResponse.json({ rsvp });
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

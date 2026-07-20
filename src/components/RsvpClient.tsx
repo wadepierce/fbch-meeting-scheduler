@@ -9,17 +9,27 @@ export default function RsvpClient({
   slug,
   closed,
   initial,
+  /** When set, answers go through the personal invite endpoint. */
+  inviteToken = null,
+  /** Lock the name field (used for personal links from the roster). */
+  nameLocked = false,
 }: {
   slug: string;
   closed: boolean;
-  initial: { displayName: string; answer: Answer; count: number } | null;
+  initial: {
+    displayName: string;
+    answer: Answer | null;
+    count: number;
+  } | null;
+  inviteToken?: string | null;
+  nameLocked?: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initial?.displayName ?? "");
   const [answer, setAnswer] = useState<Answer | null>(initial?.answer ?? null);
   const [count, setCount] = useState(initial?.count ?? 1);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(Boolean(initial?.answer));
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
@@ -27,7 +37,10 @@ export default function RsvpClient({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/r/${slug}/response`, {
+      const url = inviteToken
+        ? `/api/r/${slug}/t/${inviteToken}/response`
+        : `/api/r/${slug}/response`;
+      const res = await fetch(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,13 +116,19 @@ export default function RsvpClient({
           <label className="block text-sm font-medium text-ink">
             Your name
           </label>
-          <input
-            className="mt-1 w-full rounded-xl border border-line bg-card-muted px-3 py-3 text-base text-ink placeholder:text-ink-subtle"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="First & last name"
-            autoComplete="name"
-          />
+          {nameLocked ? (
+            <p className="mt-1 rounded-xl border border-line bg-card-muted px-3 py-3 text-base font-medium text-ink">
+              {name}
+            </p>
+          ) : (
+            <input
+              className="mt-1 w-full rounded-xl border border-line bg-card-muted px-3 py-3 text-base text-ink placeholder:text-ink-subtle"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="First & last name"
+              autoComplete="name"
+            />
+          )}
 
           <p className="mt-4 text-sm font-medium text-ink">Can you make it?</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -176,7 +195,11 @@ export default function RsvpClient({
             onClick={() => void save()}
             className="mt-5 w-full rounded-xl bg-brand py-3.5 text-sm font-semibold text-brand-contrast transition hover:bg-brand-strong disabled:opacity-50"
           >
-            {busy ? "Saving…" : initial ? "Update my answer" : "Send my answer"}
+            {busy
+              ? "Saving…"
+              : initial?.answer
+                ? "Update my answer"
+                : "Send my answer"}
           </button>
         </>
       )}

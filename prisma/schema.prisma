@@ -139,26 +139,61 @@ model Rsvp {
   createdById   String?
   /// Public /r/{slug} page opens (bots/link previews excluded)
   viewCount     Int            @default(0)
+  /// Per-person text template. Tokens: %first% %last% %name% %event% %when% %where% %link%
+  messageTemplate String?      @db.Text
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   responses     RsvpResponse[]
+  invitees      RsvpInvitee[]
 
   @@index([status])
   @@index([startsAt])
 }
 
+/// Someone the organizer is texting a personal headcount link to.
+/// Phase 3 will fill these from Planning Center lists; v1 is manual add.
+model RsvpInvitee {
+  id            String        @id @default(cuid())
+  rsvpId        String
+  rsvp          Rsvp          @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  /// Planning Center People id (optional until list import)
+  pcoPersonId   String?
+  firstName     String
+  lastName      String        @default("")
+  displayName   String
+  /// Phone as entered / from PCO (any format; normalized when building sms:)
+  phone         String?
+  /// Unguessable token for /r/{slug}/t/{token}
+  token         String        @unique
+  /// Organizer tapped Text (or marked texted)
+  textedAt      DateTime?
+  firstOpenedAt DateTime?
+  lastOpenedAt  DateTime?
+  openCount     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  response      RsvpResponse?
+
+  @@index([rsvpId])
+  @@index([pcoPersonId])
+}
+
 model RsvpResponse {
-  id          String     @id @default(cuid())
+  id          String        @id @default(cuid())
   rsvpId      String
-  rsvp        Rsvp       @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  rsvp        Rsvp          @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  /// Device cookie for anonymous / shared-link replies. Invitee replies use inv:{id}.
   guestToken  String
   displayName String
   answer      RsvpAnswer
   /// How many people this response covers (family/party size)
-  count       Int        @default(1)
+  count       Int           @default(1)
   note        String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  /// When set, this reply belongs to a roster invitee (personal link)
+  inviteeId   String?       @unique
+  invitee     RsvpInvitee?  @relation(fields: [inviteeId], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@unique([rsvpId, guestToken])
   @@index([rsvpId])

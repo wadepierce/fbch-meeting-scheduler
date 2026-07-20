@@ -8,6 +8,7 @@ import { formatViews } from "@/lib/format";
 import AppHeader from "@/components/AppHeader";
 import ShareActions from "@/components/ShareActions";
 import RsvpStatusButtons from "@/components/RsvpStatusButtons";
+import RsvpRoster, { type RosterInvitee } from "@/components/RsvpRoster";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,7 +21,17 @@ export default async function RsvpDetailPage({ params }: Props) {
   const { id } = await params;
   const rsvp = await prisma.rsvp.findUnique({
     where: { id },
-    include: { responses: { orderBy: { updatedAt: "desc" } } },
+    include: {
+      responses: { orderBy: { updatedAt: "desc" } },
+      invitees: {
+        orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+        include: {
+          response: {
+            select: { id: true, answer: true, count: true, updatedAt: true },
+          },
+        },
+      },
+    },
   });
   if (!rsvp) notFound();
 
@@ -34,6 +45,35 @@ export default async function RsvpDetailPage({ params }: Props) {
     location: rsvp.location,
     url,
   });
+
+  const invitees: RosterInvitee[] = rsvp.invitees.map((inv) => ({
+    id: inv.id,
+    firstName: inv.firstName,
+    lastName: inv.lastName,
+    displayName: inv.displayName,
+    phone: inv.phone,
+    token: inv.token,
+    textedAt: inv.textedAt?.toISOString() ?? null,
+    firstOpenedAt: inv.firstOpenedAt?.toISOString() ?? null,
+    lastOpenedAt: inv.lastOpenedAt?.toISOString() ?? null,
+    openCount: inv.openCount,
+    response: inv.response
+      ? {
+          id: inv.response.id,
+          answer: inv.response.answer,
+          count: inv.response.count,
+          updatedAt: inv.response.updatedAt.toISOString(),
+        }
+      : null,
+  }));
+
+  // Anonymous / shared-link replies not tied to the roster
+  const rosterResponseIds = new Set(
+    rsvp.invitees.map((i) => i.response?.id).filter(Boolean) as string[]
+  );
+  const orphanResponses = rsvp.responses.filter(
+    (r) => !rosterResponseIds.has(r.id)
+  );
 
   return (
     <>
@@ -81,18 +121,21 @@ export default async function RsvpDetailPage({ params }: Props) {
         </div>
         <p className="mt-2 text-center text-xs text-ink-subtle">
           Plan for <span className="font-semibold text-ink">{tally.yes}</span>
-          {tally.maybe > 0 ? ` (up to ${tally.yes + tally.maybe} with maybes)` : ""} ·{" "}
-          {tally.replies} repl{tally.replies === 1 ? "y" : "ies"} ·{" "}
+          {tally.maybe > 0
+            ? ` (up to ${tally.yes + tally.maybe} with maybes)`
+            : ""}{" "}
+          · {tally.replies} repl{tally.replies === 1 ? "y" : "ies"} ·{" "}
           {formatViews(rsvp.viewCount)}
         </p>
 
-        {/* Share */}
+        {/* Shared link (group text / posts) */}
         <div className="mt-6 rounded-2xl border border-line bg-card p-4 shadow-sm">
           <h2 className="text-sm font-semibold text-ink">
-            Text it out for a headcount
+            Shared link (group text)
           </h2>
           <p className="mt-1 text-xs text-ink-muted">
-            “Text it” opens your Messages app with this ready to send:
+            One link for everyone — fine for a group chat. For tracking who
+            opened, use the personal list below.
           </p>
           <p className="mt-2 rounded-lg bg-card-muted px-3 py-2 text-xs text-ink-muted ring-1 ring-line">
             {message}
@@ -102,18 +145,32 @@ export default async function RsvpDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Responses */}
-        <div className="mt-5 rounded-2xl border border-line bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-ink">
-            Responses ({rsvp.responses.length})
-          </h2>
-          {rsvp.responses.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-subtle">
-              No replies yet — text the link out and they&apos;ll show up here.
+        {/* Personal roster */}
+        <div className="mt-5">
+          <RsvpRoster
+            rsvpId={rsvp.id}
+            slug={rsvp.slug}
+            publicBase={base}
+            title={rsvp.title}
+            when={when}
+            location={rsvp.location}
+            initialTemplate={rsvp.messageTemplate}
+            initialInvitees={invitees}
+            closed={rsvp.status === "CLOSED"}
+          />
+        </div>
+
+        {/* Shared-link replies not on the roster */}
+        {orphanResponses.length > 0 && (
+          <div className="mt-5 rounded-2xl border border-line bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-ink">
+              Other replies ({orphanResponses.length})
+            </h2>
+            <p className="mt-1 text-xs text-ink-muted">
+              From the shared link (not on your personal list).
             </p>
-          ) : (
             <ul className="mt-2 divide-y divide-line">
-              {rsvp.responses.map((r) => (
+              {orphanResponses.map((r) => (
                 <li
                   key={r.id}
                   className="flex items-center justify-between gap-3 py-2.5"
@@ -146,8 +203,8 @@ export default async function RsvpDetailPage({ params }: Props) {
                 </li>
               ))}
             </ul>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="mt-5">
           <RsvpStatusButtons id={rsvp.id} status={rsvp.status} />

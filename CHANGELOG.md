@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — Personal headcount roster (phases 1–2)
+
+- **Personal invite links** per person on a headcount: `/r/{slug}/t/{token}`.
+  Opening the link records first/last open + open count (bots skipped). Their
+  answer is bound to that person, not a shared device cookie.
+- **Organizer roster** on the headcount detail page: add people by name/phone,
+  editable **text message template** (`%first%`, `%event%`, `%when%`, `%where%`,
+  `%link%`, …), per-person **Text** (opens Messages with their number + unique
+  link), status badges (Ready / Texted / Opened / Coming / Maybe / Can't / No
+  phone), filters, funnel counts, mark texted, copy link, remove.
+- Shared group link still works; replies from it show under “Other replies.”
+- Planning Center **list import** is next (phase 3).
+
 ## Unreleased — Delete meetings
 
 - **Delete a meeting** from its detail page: a Delete action (with a confirm)
